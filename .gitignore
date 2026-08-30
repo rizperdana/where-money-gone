@@ -1,0 +1,12 @@
+node_modules
+dist
+dev-dist
+*.local
+.DS_Store
+
+# secrets / tool state — never commit
+.env
+.env.*
+.wrangler
+*.pem
+wrangler.toml.key

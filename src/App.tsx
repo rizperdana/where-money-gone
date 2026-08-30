@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import CaptureScreen from './capture/CaptureScreen';
 import ReviewScreen from './capture/ReviewScreen';
+import AppShell from './ui/AppShell';
 import BootScreen from './ui/BootScreen';
+import DashboardScreen from './ui/DashboardScreen';
 import DetailScreen from './ui/DetailScreen';
 import ListScreen from './ui/ListScreen';
 import SettingsScreen from './ui/SettingsScreen';
@@ -42,13 +44,16 @@ export default function App() {
           <BootScreen onDone={() => setBooted(true)} />
         ) : (
           <Routes>
-            <Route path="/" element={<Navigate to="/receipts" replace />} />
-            <Route path="/capture" element={<CaptureScreen />} />
-            <Route path="/review/:id" element={<ReviewScreen />} />
-            <Route path="/receipts" element={<ListScreen />} />
-            <Route path="/receipts/:id" element={<DetailScreen />} />
-            <Route path="/settings" element={<SettingsScreen />} />
-            <Route path="*" element={<Navigate to="/receipts" replace />} />
+            <Route element={<AppShell />}>
+              <Route path="/dashboard" element={<DashboardScreen />} />
+              <Route path="/capture" element={<CaptureScreen />} />
+              <Route path="/review/:id" element={<ReviewScreen />} />
+              <Route path="/receipts" element={<ListScreen />} />
+              <Route path="/receipts/:id" element={<DetailScreen />} />
+              <Route path="/settings" element={<SettingsScreen />} />
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            </Route>
           </Routes>
         )}
       </div>

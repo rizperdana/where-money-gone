@@ -65,6 +65,7 @@ export default function ReviewScreen() {
           ocrText: text,
           ocrConfidence: confidence,
           ocrRanAt: Date.now(),
+          ocrLocale: parsed.locale,
           merchant: {
             raw: parsed.merchantRaw ?? '',
             normalized: parsed.merchantNormalized,

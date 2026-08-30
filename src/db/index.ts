@@ -1,5 +1,5 @@
 import Dexie, { type Table } from 'dexie';
-import type { GameState, Receipt, Settings } from '../types';
+import { DEFAULT_OCR_LANGS, type GameState, type Receipt, type Settings } from '../types';
 
 export class WmgDB extends Dexie {
   receipts!: Table<Receipt, string>;
@@ -18,6 +18,12 @@ export class WmgDB extends Dexie {
       settings: 'key',
       gamification: 'key',
     });
+    // v3: no schema change; defaults seeded in getSettings() for new fields.
+    this.version(3).stores({
+      receipts: 'id, createdAt, purchaseAt, merchant.normalized, ocrLocale',
+      settings: 'key',
+      gamification: 'key',
+    });
   }
 }
 
@@ -28,6 +34,9 @@ const DEFAULT_SETTINGS: Settings = {
   activeLocationSource: 'user',
   defaultCurrency: '',
   theme: 'green',
+  ocrLanguages: [...DEFAULT_OCR_LANGS],
+  dateLocale: 'en',
+  numberLocale: 'en',
 };
 
 const DEFAULT_GAME: GameState = {
@@ -43,12 +52,19 @@ export async function getSettings(): Promise<Settings> {
     const existing = await db.settings.get('app');
     if (existing) {
       // One-time migration: c64 theme renamed to cobalt.
-      if (existing.theme === 'c64') {
-        const migrated: Settings = { ...existing, theme: 'cobalt' };
-        await db.settings.put(migrated);
-        return migrated;
+      let s = existing;
+      if (s.theme === 'c64') s = { ...s, theme: 'cobalt' };
+      // v3: backfill new locale fields.
+      if (!s.ocrLanguages || !s.dateLocale || !s.numberLocale) {
+        s = {
+          ...s,
+          ocrLanguages: s.ocrLanguages ?? [...DEFAULT_OCR_LANGS],
+          dateLocale: s.dateLocale ?? 'en',
+          numberLocale: s.numberLocale ?? 'en',
+        };
+        await db.settings.put(s);
       }
-      return existing;
+      return s;
     }
     await db.settings.put(DEFAULT_SETTINGS);
     return DEFAULT_SETTINGS;

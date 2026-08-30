@@ -1,8 +1,21 @@
-// Lazy-loaded Tesseract worker. Default eng lang; core/wasm fetched at runtime
-// from CDN (offline OCR not in v1 scope). ponytail: one worker reused across reviews.
+// Lazy-loaded Tesseract worker. Default lang list comes from Settings.ocrLanguages.
+// core/wasm fetched at runtime from CDN (offline OCR not in v1 scope).
+// ponytail: one worker reused across reviews; lang set can change, so the worker is
+// rebuilt on lang change. tesseract.js's setParameters doesn't cover language switches.
 import type { Worker } from 'tesseract.js';
+import { DEFAULT_OCR_LANGS, type LocaleCode } from '../types';
+import { getSettings } from '../db';
+
+const LANG_MAP: Record<LocaleCode, string> = {
+  en: 'eng',
+  id: 'eng', // ponytail: Tesseract has no Indonesian traineddata; fall back to eng.
+  zh: 'chi_sim',
+  de: 'deu',
+  ja: 'jpn',
+};
 
 let workerPromise: Promise<Worker> | null = null;
+let workerLangs = '';
 // ponytail: latest per-call progress sink; Tesseract v5 reports progress via the
 // createWorker logger, not a recognize() callback.
 let currentProgress: ((ratio: number) => void) | null = null;
@@ -12,21 +25,34 @@ export interface OcrResult {
   confidence: number;
 }
 
-export async function getWorker(): Promise<Worker> {
-  if (!workerPromise) {
-    workerPromise = (async () => {
-      // ponytail justification for dynamic import: Tesseract core is ~2MB; keep it
-      // out of the initial bundle + first paint. Vite code-splits this into its own chunk.
-      const { createWorker } = await import('tesseract.js');
-      return createWorker('eng', undefined, {
-        logger: (m: { status: string; progress: number }) => {
-          if (currentProgress && m.status === 'recognizing text') {
-            currentProgress(m.progress);
-          }
-        },
-      });
-    })();
+function buildLangString(langs: LocaleCode[]): string {
+  const unique = Array.from(new Set(langs));
+  const mapped = unique.map((l) => LANG_MAP[l]).filter(Boolean);
+  // ponytail: always include eng as a base; Tesseract needs at least one lang.
+  if (!mapped.includes('eng')) mapped.unshift('eng');
+  return mapped.join('+');
+}
+
+async function createWorkerWith(langString: string): Promise<Worker> {
+  const { createWorker } = await import('tesseract.js');
+  return createWorker(langString, undefined, {
+    logger: (m: { status: string; progress: number }) => {
+      if (currentProgress && m.status === 'recognizing text') {
+        currentProgress(m.progress);
+      }
+    },
+  });
+}
+
+async function getWorker(langString: string): Promise<Worker> {
+  if (workerPromise && workerLangs === langString) return workerPromise;
+  // ponytail: language change means rebuild the worker; the old one is useless.
+  if (workerPromise) {
+    const w = await workerPromise;
+    await w.terminate();
   }
+  workerLangs = langString;
+  workerPromise = createWorkerWith(langString);
   return workerPromise;
 }
 
@@ -36,7 +62,10 @@ export async function runOcr(
 ): Promise<OcrResult> {
   currentProgress = onProgress ?? null;
   try {
-    const worker = await getWorker();
+    const settings = await getSettings();
+    const langs = settings.ocrLanguages?.length ? settings.ocrLanguages : DEFAULT_OCR_LANGS;
+    const langString = buildLangString(langs);
+    const worker = await getWorker(langString);
     const result = await worker.recognize(blob);
     return { text: result.data.text, confidence: result.data.confidence };
   } finally {
@@ -49,5 +78,6 @@ export async function terminateOcr(): Promise<void> {
     const w = await workerPromise;
     await w.terminate();
     workerPromise = null;
+    workerLangs = '';
   }
 }

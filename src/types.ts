@@ -1,6 +1,11 @@
 export type ParseStatus = 'pending' | 'parsed' | 'user_confirmed' | 'failed';
 export type LocationSource = 'user' | 'merchant' | 'both' | 'none';
 
+// ponytail: 3 user-facing locales first; extends via keyof LANG_MAP without code changes.
+export type LocaleCode = 'en' | 'id' | 'zh' | 'de' | 'ja';
+export const SUPPORTED_LOCALES: LocaleCode[] = ['en', 'id', 'zh', 'de', 'ja'];
+export const DEFAULT_OCR_LANGS: LocaleCode[] = ['en', 'id', 'zh'];
+
 export interface GeocodedMerchant {
   lat: number;
   lng: number;
@@ -35,6 +40,7 @@ export interface Receipt {
   ocrText: string;
   ocrConfidence: number;
   ocrRanAt: number | null;
+  ocrLocale?: LocaleCode;
   merchant: Merchant;
   purchaseAt: number | null;
   currency: string | null;
@@ -55,6 +61,9 @@ export interface Settings {
   defaultCurrency: string;
   theme?: string;
   bootedAt?: number;
+  ocrLanguages: LocaleCode[];
+  dateLocale: LocaleCode;
+  numberLocale: LocaleCode;
 }
 
 export interface ParsedReceipt {
@@ -67,6 +76,7 @@ export interface ParsedReceipt {
   tax: number | null;
   lineItems: LineItem[];
   parseStatus: ParseStatus;
+  locale: LocaleCode;
 }
 
 export interface StreakState {

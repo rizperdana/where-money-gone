@@ -1,4 +1,11 @@
-import type { LineItem, ParsedReceipt, ParseStatus } from '../types';
+import type { LineItem, LocaleCode, ParsedReceipt, ParseStatus } from '../types';
+import {
+  KEYWORDS,
+  buildKeywordRegex,
+  buildSkipRegex,
+  getMonthIndex,
+  type ReceiptKeywords,
+} from '../i18n/receipt-keywords';
 
 // Symbol -> ISO. ¥ ambiguous (JPY/CNY); default JPY for v1.
 const CURRENCY_SYMBOLS: Record<string, string> = {
@@ -7,13 +14,27 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
   '£': 'GBP',
   '¥': 'JPY',
   '₹': 'INR',
+  Rp: 'IDR',
 };
 const CURRENCY_CODE_RE = /\b(USD|EUR|GBP|JPY|SGD|IDR|MYR|THB|CNY|INR|AUD|CAD|NZD)\b/;
 
-const MONTHS: Record<string, number> = {
-  jan: 1, feb: 2, mar: 3, apr: 4, may: 5, jun: 6,
-  jul: 7, aug: 8, sep: 9, oct: 10, nov: 11, dec: 12,
-};
+// ponytail: script detection runs once per receipt, returns first script hit.
+// Hiragana/Katakana = ja, CJK-only = zh; Latin = en; everything else falls back to en.
+const SCRIPT_RANGES: Array<{ re: RegExp; locale: LocaleCode }> = [
+  { re: /[\u3040-\u309F\u30A0-\u30FF]/, locale: 'ja' },
+  { re: /[\u4E00-\u9FFF]/, locale: 'zh' },
+  { re: /[\u0400-\u04FF]/, locale: 'en' },
+  { re: /[\u0600-\u06FF]/, locale: 'en' },
+  { re: /[\u0900-\u097F]/, locale: 'en' },
+  { re: /[\u0E00-\u0E7F]/, locale: 'en' },
+];
+
+export function detectLocale(text: string): LocaleCode {
+  for (const { re, locale } of SCRIPT_RANGES) {
+    if (re.test(text)) return locale;
+  }
+  return 'en';
+}
 
 function normalizeMerchant(raw: string | null): string | null {
   if (!raw) return null;
@@ -45,19 +66,21 @@ function toAmount(s: string): number | null {
   const n = parseFloat(t);
   return Number.isFinite(n) ? n : null;
 }
-
-// Pull the most money-like amount from a line: prefer a 2-decimal value, keep the last.
+// Pull the most money-like amount from a line: prefer 2-decimal values, keep the last.
+// Pull the most money-like amount from a line: prefer 2-decimal values, take last.
 function extractAmount(line: string): number | null {
   const tokens = line.match(/-?\d[\d.,]*\d|-?\d/g);
   if (!tokens) return null;
-  let best: number | null = null;
+  let lastMoney: number | null = null;
+  let last: number | null = null;
   for (const tk of tokens) {
     const n = toAmount(tk);
     if (n === null) continue;
-    const isMoney = /\d[.,]\d{2}\b/.test(tk);
-    if (best === null || isMoney) best = n;
+    last = n;
+    if (/\d[.,]\d{2}\b/.test(tk)) lastMoney = n;
   }
-  return best;
+  // ponytail: money-shaped wins; if no money-shaped token, last number on the line wins.
+  return lastMoney ?? last;
 }
 
 function parseDateLine(line: string): number | null {
@@ -83,28 +106,43 @@ function parseDateLine(line: string): number | null {
     }
     return Date.UTC(year, month - 1, day);
   }
-  // DD MMM YYYY
-  m = line.match(/\b(\d{1,2})[ ]?(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*[ ,]+(20\d{2})\b/i);
-  if (m) return Date.UTC(+m[3], MONTHS[m[2].toLowerCase()] - 1, +m[1]);
-  // MMM DD, YYYY
-  m = line.match(/\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*[ ]?(\d{1,2}),?[ ]?(20\d{2})\b/i);
-  if (m) return Date.UTC(+m[3], MONTHS[m[1].toLowerCase()] - 1, +m[2]);
+  // ponytail: try every locale's month table — covers 合计 + 15 mar 2026
+  m = line.match(/\b(\d{1,2})[ ]?([A-Za-z\u4E00-\u9FFF]{3,10})[ ,]+(20\d{2})\b/);
+  if (m) {
+    const monthIdx = getMonthIndex(m[2]);
+    if (monthIdx !== null) return Date.UTC(+m[3], monthIdx - 1, +m[1]);
+  }
+  m = line.match(/\b([A-Za-z\u4E00-\u9FFF]{3,10})[ ]?(\d{1,2}),?[ ]?(20\d{2})\b/);
+  if (m) {
+    const monthIdx = getMonthIndex(m[1]);
+    if (monthIdx !== null) return Date.UTC(+m[3], monthIdx - 1, +m[2]);
+  }
   return null;
 }
 
-function detectCurrency(text: string): string | null {
+function detectCurrency(text: string, locale: LocaleCode): string | null {
   const code = text.match(CURRENCY_CODE_RE);
   if (code) return code[1];
+  // ponytail: locale symbols (Rp, 元, 円) don't appear in the global CURRENCY_CODE_RE.
+  for (const sym of KEYWORDS[locale].currency) {
+    if (sym.length <= 3 && /[A-Za-z]/.test(sym)) continue;
+    if (text.includes(sym)) {
+      const mapped = CURRENCY_SYMBOLS[sym];
+      if (mapped) return mapped;
+    }
+  }
   for (const [sym, iso] of Object.entries(CURRENCY_SYMBOLS)) {
     if (text.includes(sym)) return iso;
   }
   return null;
 }
 
-function findAmountNearKeyword(lines: string[], kwRe: RegExp): number | null {
+function findAmountNearKeyword(lines: string[], kwRe: RegExp, exclude?: RegExp[]): number | null {
   for (let i = 0; i < lines.length; i++) {
-    if (kwRe.test(lines[i].toLowerCase())) {
-      let a = extractAmount(lines[i]);
+    const line = lines[i];
+    if (exclude?.some((re) => re.test(line))) continue;
+    if (kwRe.test(line)) {
+      let a = extractAmount(line);
       if (a === null && i + 1 < lines.length) a = extractAmount(lines[i + 1]);
       return a;
     }
@@ -112,11 +150,29 @@ function findAmountNearKeyword(lines: string[], kwRe: RegExp): number | null {
   return null;
 }
 
-function parseLineItems(lines: string[]): LineItem[] {
+// ponytail: qty×unit_price line shapes vary; this regex covers the 4 common ones in 1 pass.
+const QTY_LINE_RE = /^(.+?)\s+(\d+)\s*[x×]\s*(\d[\d.,]*)\s+(\d[\d.,]*)\s*$/;
+
+function parseLineItems(lines: string[], skip: RegExp): LineItem[] {
   const items: LineItem[] = [];
-  const skip = /(^|\b)(sub)?total|tax|change|cash|balance|tender|discount|date|phone|tel|www|\.com|http|receipt|invoice/i;
   for (const line of lines) {
     if (skip.test(line)) continue;
+    const qm = line.match(QTY_LINE_RE);
+    if (qm) {
+      const desc = qm[1].trim();
+      const qty = toAmount(qm[2]);
+      const unit = toAmount(qm[3]);
+      const sub = toAmount(qm[4]);
+      if (desc.length >= 2 && qty !== null && unit !== null) {
+        items.push({
+          description: desc,
+          qty,
+          unitPrice: unit,
+          total: sub,
+        });
+        continue;
+      }
+    }
     const m = line.match(/^(.*?)\s+(\d[\d.,]*\d|\d)\s*$/);
     if (!m) continue;
     const desc = m[1].trim();
@@ -128,7 +184,27 @@ function parseLineItems(lines: string[]): LineItem[] {
   return items;
 }
 
-export function parseReceipt(ocrText: string, ocrConfidence: number): ParsedReceipt {
+function mergeKeywords(list: ReceiptKeywords[]): ReceiptKeywords {
+  const out: ReceiptKeywords = {
+    total: [], subtotal: [], tax: [], item: [], qty: [], skip: [], currency: [],
+    monthsShort: [], monthsLong: [],
+  };
+  for (const k of list) {
+    (Object.keys(out) as Array<keyof ReceiptKeywords>).forEach((key) => {
+      out[key].push(...k[key]);
+    });
+  }
+  return out;
+}
+
+export function parseReceipt(ocrText: string, ocrConfidence: number, locale?: LocaleCode): ParsedReceipt {
+  const detected: LocaleCode = locale ?? detectLocale(ocrText);
+  // ponytail: Latin script is shared by EN/DE/ID — union so a German SUMME or
+  // Indonesian PPN in an otherwise-English receipt still parses. Upgrade: per-locale auto-detect.
+  const keywords: ReceiptKeywords = detected === 'en'
+    ? mergeKeywords([KEYWORDS.en, KEYWORDS.de, KEYWORDS.id])
+    : KEYWORDS[detected];
+
   const rawLines = ocrText.split(/\r?\n/);
   const lines = rawLines.map((l) => l.trim()).filter((l) => l.length > 0);
 
@@ -156,19 +232,20 @@ export function parseReceipt(ocrText: string, ocrConfidence: number): ParsedRece
     }
   }
 
-  const currency = detectCurrency(ocrText);
+  const currency = detectCurrency(ocrText, detected);
 
-  const total = findAmountNearKeyword(
-    lines,
-    /\b(total|summe|gesamt|amount\s*due|grand\s*total|balance\s*due)\b|総計|合計/i,
-  );
-  const subtotal = findAmountNearKeyword(lines, /(subtotal|zwischensumme|sub-total|小計)/i);
-  const tax = findAmountNearKeyword(lines, /(tax|mwst|vat|税)/i);
+  const totalRe = buildKeywordRegex(keywords.total);
+  const subtotalRe = buildKeywordRegex(keywords.subtotal);
+  const taxRe = buildKeywordRegex(keywords.tax);
+  const total = findAmountNearKeyword(lines, totalRe, [subtotalRe, taxRe]);
+  const subtotal = findAmountNearKeyword(lines, subtotalRe, [totalRe, taxRe]);
+  const tax = findAmountNearKeyword(lines, taxRe, [totalRe, subtotalRe]);
 
   // Line items: exclude the merchant line and anything at/after the total line.
-  const totalIdx = lines.findIndex((l) => /\b(total|summe|gesamt)\b|合計|総計/i.test(l));
+  const totalIdx = lines.findIndex((l) => totalRe.test(l));
   const itemLines = totalIdx >= 0 ? lines.slice(1, totalIdx) : lines.slice(1);
-  const lineItems = parseLineItems(itemLines);
+  const skip = buildSkipRegex(keywords);
+  const lineItems = parseLineItems(itemLines, skip);
 
   const criticalPresent = merchantRaw !== null && total !== null;
   let parseStatus: ParseStatus = 'parsed';
@@ -186,5 +263,6 @@ export function parseReceipt(ocrText: string, ocrConfidence: number): ParsedRece
     tax,
     lineItems,
     parseStatus,
+    locale: detected,
   };
 }

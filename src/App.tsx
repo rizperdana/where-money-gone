@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
-import ListScreen from './ui/ListScreen';
-import DetailScreen from './ui/DetailScreen';
 import CaptureScreen from './capture/CaptureScreen';
 import ReviewScreen from './capture/ReviewScreen';
 import BootScreen from './ui/BootScreen';
+import DetailScreen from './ui/DetailScreen';
+import ListScreen from './ui/ListScreen';
+import SettingsScreen from './ui/SettingsScreen';
 import TerminalToastHost from './ui/TerminalToast';
 import { applyTheme, DEFAULT_THEME } from './theme/themes';
 import { getSettings, saveSettings } from './db';
@@ -46,6 +47,7 @@ export default function App() {
             <Route path="/review/:id" element={<ReviewScreen />} />
             <Route path="/receipts" element={<ListScreen />} />
             <Route path="/receipts/:id" element={<DetailScreen />} />
+            <Route path="/settings" element={<SettingsScreen />} />
             <Route path="*" element={<Navigate to="/receipts" replace />} />
           </Routes>
         )}

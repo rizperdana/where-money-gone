@@ -1,7 +1,4 @@
-// 6 CRT-style themes. Pure CSS custom properties — Tailwind reads them at runtime.
-// ponytail: theme values are static; no need for a state machine or context.
-// Add a theme by adding a `theme-<name>` body class + entries here.
-
+// 3 themes: green phosphor, cobalt blue, light. Pure CSS custom properties.
 export interface Theme {
   id: string;
   name: string;
@@ -18,7 +15,7 @@ export interface Theme {
 export const THEMES: Record<string, Theme> = {
   green: {
     id: 'green',
-    name: 'Classic Green Phosphor',
+    name: 'Green Phosphor',
     bg: '#0a0a0a',
     surface: '#111111',
     fg: '#00ff41',
@@ -28,65 +25,29 @@ export const THEMES: Record<string, Theme> = {
     danger: '#ff3333',
     warning: '#ffcc00',
   },
-  amber: {
-    id: 'amber',
-    name: 'Amber Terminal',
-    bg: '#0a0a0a',
-    surface: '#1a1100',
-    fg: '#ffb000',
-    fgDim: '#996600',
-    fgBright: '#ffdd88',
-    accent: '#ffb000',
-    danger: '#ff5500',
-    warning: '#ffee00',
+  cobalt: {
+    id: 'cobalt',
+    name: 'Cobalt Blue',
+    bg: '#0a0e1a',
+    surface: '#111726',
+    fg: '#5eb3ff',
+    fgDim: '#3a6da8',
+    fgBright: '#b8dcff',
+    accent: '#5eb3ff',
+    danger: '#ff5577',
+    warning: '#ffcc00',
   },
-  fallout: {
-    id: 'fallout',
-    name: 'Fallout Blue',
-    bg: '#1a1a2e',
-    surface: '#222244',
-    fg: '#99ccff',
-    fgDim: '#5577aa',
-    fgBright: '#cce0ff',
-    accent: '#99ccff',
-    danger: '#ff6644',
-    warning: '#ffcc66',
-  },
-  crimson: {
-    id: 'crimson',
-    name: 'Crimson Alert',
-    bg: '#0a0a0a',
-    surface: '#1a0000',
-    fg: '#ff0040',
-    fgDim: '#880022',
-    fgBright: '#ff8899',
-    accent: '#ff0040',
-    danger: '#ff0040',
-    warning: '#ffaa00',
-  },
-  c64: {
-    id: 'c64',
-    name: 'C64 Nostalgia',
-    bg: '#40318d',
-    surface: '#5040a0',
-    fg: '#706deb',
-    fgDim: '#a099cc',
-    fgBright: '#cce0ff',
-    accent: '#b8b0ff',
-    danger: '#ff7777',
-    warning: '#ffcc66',
-  },
-  night: {
-    id: 'night',
-    name: 'Terminal Night',
-    bg: '#111111',
-    surface: '#1c1c1c',
-    fg: '#00ff88',
-    fgDim: '#007744',
-    fgBright: '#88ffcc',
-    accent: '#00ff88',
-    danger: '#ff5555',
-    warning: '#ffdd55',
+  light: {
+    id: 'light',
+    name: 'Daylight',
+    bg: '#f5f1e8',
+    surface: '#ffffff',
+    fg: '#1a4d2e',
+    fgDim: '#7a8a7e',
+    fgBright: '#0d2818',
+    accent: '#ff6b35',
+    danger: '#d63031',
+    warning: '#fdcb6e',
   },
 };
 
@@ -105,5 +66,5 @@ export function applyTheme(themeId: string): void {
   root.style.setProperty('--wmg-danger', t.danger);
   root.style.setProperty('--wmg-warning', t.warning);
   document.body.classList.remove(...Object.keys(THEMES).map((k) => `theme-${k}`));
-  document.body.classList.add(`theme-${themeId}`);
+  document.body.classList.add(`theme-${t.id}`);
 }

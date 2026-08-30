@@ -40,14 +40,23 @@ export default function ListScreen() {
     <div className="max-w-md mx-auto p-4 flex flex-col gap-4 min-h-screen">
       <TerminalHeader route="RECEIPTS" />
 
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2">
         <h1 className="wmg-title">[ RECEIPTS ]</h1>
-        <button
-          className="wmg-panel hover:opacity-80 px-4 py-2 text-sm"
-          onClick={() => navigate('/capture')}
-        >
-          [ + ADD ]
-        </button>
+        <div className="flex gap-2">
+          <button
+            className="wmg-panel hover:opacity-80 px-3 py-2 text-sm"
+            onClick={() => navigate('/settings')}
+            aria-label="Settings"
+          >
+            <span className="wmg-pixel">[ ⚙ ]</span>
+          </button>
+          <button
+            className="wmg-panel hover:opacity-80 px-4 py-2 text-sm"
+            onClick={() => navigate('/capture')}
+          >
+            [ + ADD ]
+          </button>
+        </div>
       </div>
 
       <StreakHeader />

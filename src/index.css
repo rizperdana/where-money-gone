@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=VT323&family=Share+Tech+Mono&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
   --wmg-bg: #0a0a0a;
@@ -18,82 +18,64 @@
 html,
 body,
 #root {
-  height: 100%;
   margin: 0;
-}
-
-body {
+  padding: 0;
+  min-height: 100vh;
   background: var(--wmg-bg);
   color: var(--wmg-fg);
-  font-family: 'Share Tech Mono', 'Courier New', 'Lucida Console', monospace;
-  overscroll-behavior-y: none;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
-  text-shadow: 0 0 3px var(--wmg-fg);
-}
-
-/* CRT scanline overlay — pure CSS, no canvas. */
-#root::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 9999;
-  background: repeating-linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 0) 0,
-    rgba(0, 0, 0, 0) 2px,
-    rgba(0, 0, 0, 0.15) 3px,
-    rgba(0, 0, 0, 0.15) 4px
-  );
-}
-
-/* Subtle flicker — barely perceptible. */
-@keyframes wmg-flicker {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.98;
-  }
-}
-
-#root {
-  animation: wmg-flicker 4s infinite;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Boot animation: typewriter-style cursor blink. */
 @keyframes wmg-blink {
-  0%,
-  50% {
-    opacity: 1;
-  }
-  51%,
-  100% {
-    opacity: 0;
-  }
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
 }
 
 .wmg-cursor::after {
-  content: '█';
+  content: '▌';
   display: inline-block;
-  margin-left: 2px;
-  animation: wmg-blink 1s step-end infinite;
+  margin-left: 0.15em;
+  color: var(--wmg-accent);
+  animation: wmg-blink 1s steps(1) infinite;
+  vertical-align: baseline;
 }
 
-/* Terminal-style headers and titles — VT323 retro font. */
+/* Pixel title — chunky bitmap font, used on screen headers. */
 .wmg-title {
-  font-family: 'VT323', 'Share Tech Mono', monospace;
-  font-size: 1.5rem;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 1.125rem;
+  line-height: 1.4;
   letter-spacing: 0.05em;
-  text-shadow: 0 0 5px var(--wmg-fg);
+  color: var(--wmg-fg-bright);
+  text-transform: uppercase;
 }
 
-/* Used by every "screen" container for a bordered CRT panel feel. */
+/* Pixel accent — small caps, Press Start 2P, for badges / labels. */
+.wmg-pixel {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.625rem;
+  line-height: 1.6;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* Modern emphasis — clean Inter, used on currency totals. */
+.wmg-modern {
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+/* Hard pixel panel: 2px border + 4px 4px 0 0 hard shadow. No border-radius. */
 .wmg-panel {
   background: var(--wmg-surface);
-  border: 1px solid var(--wmg-fg-dim);
-  padding: 0.75rem;
+  border: 2px solid var(--wmg-fg-dim);
+  box-shadow: 4px 4px 0 0 var(--wmg-fg-dim);
+  padding: 0.75rem 1rem;
+  color: var(--wmg-fg);
 }
 
 /* Override common Tailwind colors so screens look on-theme without rewriting every class. */

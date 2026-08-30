@@ -39,9 +39,17 @@ const DEFAULT_GAME: GameState = {
 };
 
 export async function getSettings(): Promise<Settings> {
-  return db.transaction('r', db.settings, async () => {
+  return db.transaction('rw', db.settings, async () => {
     const existing = await db.settings.get('app');
-    if (existing) return existing;
+    if (existing) {
+      // One-time migration: c64 theme renamed to cobalt.
+      if (existing.theme === 'c64') {
+        const migrated: Settings = { ...existing, theme: 'cobalt' };
+        await db.settings.put(migrated);
+        return migrated;
+      }
+      return existing;
+    }
     await db.settings.put(DEFAULT_SETTINGS);
     return DEFAULT_SETTINGS;
   });

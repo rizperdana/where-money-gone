@@ -1,0 +1,60 @@
+import { useEffect, useState } from 'react';
+import { db, getGame } from '../db';
+import { currentHP } from '../gamification/hp';
+import type { GameState, Receipt } from '../types';
+
+function hpColor(hp: number): string {
+  if (hp >= 80) return 'var(--wmg-accent)';
+  if (hp >= 50) return 'var(--wmg-warning)';
+  return 'var(--wmg-danger)';
+}
+
+export default function StreakHeader() {
+  const [game, setGame] = useState<GameState | null>(null);
+  const [hp, setHp] = useState(100);
+  const [receiptCount, setReceiptCount] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const g = await getGame();
+      const all: Receipt[] = await db.receipts.toArray();
+      if (cancelled) return;
+      setGame(g);
+      setReceiptCount(all.length);
+      setHp(currentHP(all, g));
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (!game) return null;
+  const barWidth = `${hp}%`;
+
+  return (
+    <div className="wmg-panel flex flex-col gap-1 text-sm">
+      <div className="flex items-center justify-between">
+        <span>[ STREAK: {game.streak.current} DAYS ]</span>
+        <span className="text-[var(--wmg-fg-dim)]">BEST: {game.streak.best}</span>
+      </div>
+      <div className="flex items-center justify-between">
+        <span>[ RP: {game.rp.toLocaleString()} ]</span>
+        <span className="text-[var(--wmg-fg-dim)]">RANK: {Math.floor(game.rp / 500) + 1}</span>
+      </div>
+      <div className="flex flex-col gap-0.5">
+        <div className="flex items-center justify-between text-[var(--wmg-fg-dim)]">
+          <span>WALLET HEALTH</span>
+          <span style={{ color: hpColor(hp) }}>{hp}%</span>
+        </div>
+        <div className="h-2 bg-[var(--wmg-bg)] border border-[var(--wmg-fg-dim)]">
+          <div className="h-full" style={{ width: barWidth, background: hpColor(hp) }} />
+        </div>
+      </div>
+      <div className="text-[var(--wmg-fg-dim)] text-xs">
+        {receiptCount} RECEIPT{receiptCount === 1 ? '' : 'S'} LOGGED | {game.achievements.length}/
+        15 ACHIEVEMENTS
+      </div>
+    </div>
+  );
+}

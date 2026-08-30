@@ -53,6 +53,8 @@ export interface Settings {
   key: string;
   activeLocationSource: 'user' | 'merchant';
   defaultCurrency: string;
+  theme?: string;
+  bootedAt?: number;
 }
 
 export interface ParsedReceipt {
@@ -65,4 +67,32 @@ export interface ParsedReceipt {
   tax: number | null;
   lineItems: LineItem[];
   parseStatus: ParseStatus;
+}
+
+export interface StreakState {
+  current: number;
+  best: number;
+  lastLogDate: string | null; // YYYY-MM-DD in local time
+}
+
+// ponytail: HP is derived (computeHP), not stored. No stored hp field.
+export interface GameState {
+  key: 'app';
+  streak: StreakState;
+  rp: number;
+  achievements: string[]; // unlocked ids
+  monthlyBudget: number; // major units, per month
+}
+
+export interface Achievement {
+  id: string;
+  name: string;
+  description: string;
+  predicate: (ctx: AchievementCtx) => boolean;
+}
+
+export interface AchievementCtx {
+  receipts: Receipt[];
+  game: GameState;
+  hp: number; // computed live, passed in by callers
 }

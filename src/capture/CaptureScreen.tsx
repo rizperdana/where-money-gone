@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { db, newId } from '../db';
 import { downscaleImage } from '../util/image';
+import TerminalHeader from '../ui/TerminalHeader';
 import type { Receipt, UserLocation } from '../types';
 
 function getGeolocation(): Promise<UserLocation | null> {
@@ -71,16 +72,17 @@ export default function CaptureScreen() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[80vh] p-6 gap-6">
-      <h1 className="text-2xl font-semibold text-slate-100">Snap a receipt</h1>
-      <p className="text-slate-400 text-center max-w-xs">
-        Take a photo of a paper or online receipt. OCR runs on your device.
+      <TerminalHeader route="CAPTURE" />
+      <h1 className="wmg-title">[ CAPTURE ]</h1>
+      <p className="text-[var(--wmg-fg-dim)] text-center max-w-xs">
+        Point camera at a receipt. OCR runs on-device. Nothing leaves this phone.
       </p>
       <button
-        className="w-full max-w-xs bg-sky-600 hover:bg-sky-500 text-white font-medium py-4 rounded-xl text-lg disabled:opacity-50"
+        className="wmg-panel hover:opacity-80 w-full max-w-xs font-medium py-4 text-lg disabled:opacity-50"
         onClick={() => inputRef.current?.click()}
         disabled={busy}
       >
-        {busy ? 'Processing…' : 'Add receipt'}
+        {busy ? '[ PROCESSING... ]' : '[ ADD RECEIPT ]'}
       </button>
       <input
         ref={inputRef}
@@ -90,7 +92,7 @@ export default function CaptureScreen() {
         className="hidden"
         onChange={onFile}
       />
-      {error && <p className="text-rose-400 text-sm">{error}</p>}
+      {error && <p className="text-[var(--wmg-danger)] text-sm">{error}</p>}
     </div>
   );
 }

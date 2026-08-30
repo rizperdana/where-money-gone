@@ -2,14 +2,146 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.googleapis.com/css2?family=VT323&family=Share+Tech+Mono&display=swap');
+
+:root {
+  --wmg-bg: #0a0a0a;
+  --wmg-surface: #111111;
+  --wmg-fg: #00ff41;
+  --wmg-fg-dim: #008822;
+  --wmg-fg-bright: #aaffaa;
+  --wmg-accent: #00ff41;
+  --wmg-danger: #ff3333;
+  --wmg-warning: #ffcc00;
+}
+
 html,
 body,
 #root {
   height: 100%;
+  margin: 0;
 }
 
 body {
-  background: #0f172a;
-  margin: 0;
+  background: var(--wmg-bg);
+  color: var(--wmg-fg);
+  font-family: 'Share Tech Mono', 'Courier New', 'Lucida Console', monospace;
   overscroll-behavior-y: none;
+  -webkit-font-smoothing: antialiased;
+  text-shadow: 0 0 3px var(--wmg-fg);
+}
+
+/* CRT scanline overlay — pure CSS, no canvas. */
+#root::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0) 0,
+    rgba(0, 0, 0, 0) 2px,
+    rgba(0, 0, 0, 0.15) 3px,
+    rgba(0, 0, 0, 0.15) 4px
+  );
+}
+
+/* Subtle flicker — barely perceptible. */
+@keyframes wmg-flicker {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.98;
+  }
+}
+
+#root {
+  animation: wmg-flicker 4s infinite;
+}
+
+/* Boot animation: typewriter-style cursor blink. */
+@keyframes wmg-blink {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  51%,
+  100% {
+    opacity: 0;
+  }
+}
+
+.wmg-cursor::after {
+  content: '█';
+  display: inline-block;
+  margin-left: 2px;
+  animation: wmg-blink 1s step-end infinite;
+}
+
+/* Terminal-style headers and titles — VT323 retro font. */
+.wmg-title {
+  font-family: 'VT323', 'Share Tech Mono', monospace;
+  font-size: 1.5rem;
+  letter-spacing: 0.05em;
+  text-shadow: 0 0 5px var(--wmg-fg);
+}
+
+/* Used by every "screen" container for a bordered CRT panel feel. */
+.wmg-panel {
+  background: var(--wmg-surface);
+  border: 1px solid var(--wmg-fg-dim);
+  padding: 0.75rem;
+}
+
+/* Override common Tailwind colors so screens look on-theme without rewriting every class. */
+.text-slate-100,
+.text-slate-200,
+.text-slate-300 {
+  color: var(--wmg-fg) !important;
+}
+
+.text-slate-400,
+.text-slate-500 {
+  color: var(--wmg-fg-dim) !important;
+}
+
+.bg-slate-900,
+.bg-slate-800 {
+  background-color: var(--wmg-bg) !important;
+}
+
+.bg-slate-700,
+.bg-slate-600 {
+  background-color: var(--wmg-surface) !important;
+}
+
+.border-slate-700,
+.border-slate-600,
+.border-slate-500 {
+  border-color: var(--wmg-fg-dim) !important;
+}
+
+.text-sky-400,
+.text-sky-500,
+.text-blue-400 {
+  color: var(--wmg-accent) !important;
+}
+
+.bg-sky-500,
+.bg-blue-500 {
+  background-color: var(--wmg-accent) !important;
+}
+
+.text-red-400,
+.text-red-500,
+.text-rose-500 {
+  color: var(--wmg-danger) !important;
+}
+
+.text-amber-400,
+.text-yellow-400 {
+  color: var(--wmg-warning) !important;
 }

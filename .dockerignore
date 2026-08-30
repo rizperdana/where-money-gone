@@ -1,0 +1,9 @@
+node_modules
+dist
+.git
+*.md
+.github
+.wrangler
+.omp
+.env*
+.DS_Store

@@ -9,9 +9,6 @@ import { notify } from './toast-bus';
 const LOCALE_LABEL: Record<LocaleCode, string> = {
   en: 'English',
   id: 'Bahasa Indonesia',
-  zh: '中文 (简体)',
-  de: 'Deutsch',
-  ja: '日本語',
 };
 
 export default function SettingsScreen() {
@@ -103,10 +100,13 @@ export default function SettingsScreen() {
                 }}
               >
                 <span
-                  className="w-6 h-6 border-2"
-                  style={{ background: t.fg, borderColor: t.fgDim }}
+                  className="w-8 h-8 border-2"
+                  style={{
+                    background: `linear-gradient(135deg, ${t.fg} 0 50%, ${t.accent} 50% 100%)`,
+                    borderColor: t.fgDim,
+                    imageRendering: 'pixelated',
+                  }}
                 />
-                <span className="wmg-pixel text-[0.5rem]">{t.name}</span>
               </button>
             );
           })}
@@ -190,7 +190,7 @@ export default function SettingsScreen() {
 
       <section className="wmg-panel flex flex-col gap-3">
         <h2 className="wmg-pixel">ABOUT</h2>
-        <p className="wmg-modern text-sm">Where Money Gone — v2.0</p>
+        <p className="wmg-pixel text-[0.5rem] text-[var(--wmg-fg-dim)]">Where Money Gone — v2.1</p>
         <p className="text-[var(--wmg-fg-dim)] text-xs">
           Local-only. No cloud. No backup. You are the backup.
         </p>

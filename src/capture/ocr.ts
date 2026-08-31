@@ -9,9 +9,6 @@ import { getSettings } from '../db';
 const LANG_MAP: Record<LocaleCode, string> = {
   en: 'eng',
   id: 'eng', // ponytail: Tesseract has no Indonesian traineddata; fall back to eng.
-  zh: 'chi_sim',
-  de: 'deu',
-  ja: 'jpn',
 };
 
 let workerPromise: Promise<Worker> | null = null;

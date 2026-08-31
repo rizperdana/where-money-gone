@@ -184,7 +184,7 @@ export default function ListScreen() {
               onClick={() => navigate(`/receipts/${r.id}`)}
             >
               {thumbs[r.id] && (
-                <img src={thumbs[r.id]} alt="" className="w-14 h-14 object-cover rounded" />
+                <img src={thumbs[r.id]} alt="" className="w-14 h-14 object-cover" style={{ imageRendering: 'pixelated' }} />
               )}
               <div className="flex-1 min-w-0">
                 <p className="font-medium truncate">

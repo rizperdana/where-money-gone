@@ -33,7 +33,7 @@ const DEFAULT_SETTINGS: Settings = {
   key: 'app',
   activeLocationSource: 'user',
   defaultCurrency: '',
-  theme: 'green',
+  theme: 'pixel-dark',
   ocrLanguages: [...DEFAULT_OCR_LANGS],
   dateLocale: 'en',
   numberLocale: 'en',
@@ -51,9 +51,10 @@ export async function getSettings(): Promise<Settings> {
   return db.transaction('rw', db.settings, async () => {
     const existing = await db.settings.get('app');
     if (existing) {
-      // One-time migration: c64 theme renamed to cobalt.
+      // One-time migration: old themes (green/cobalt/light/c64) → pixel-dark.
       let s = existing;
-      if (s.theme === 'c64') s = { ...s, theme: 'cobalt' };
+      const OLD_THEMES = ['green', 'cobalt', 'light', 'c64'];
+      if (!s.theme || OLD_THEMES.includes(s.theme)) s = { ...s, theme: 'pixel-dark' };
       // v3: backfill new locale fields.
       if (!s.ocrLanguages || !s.dateLocale || !s.numberLocale) {
         s = {

@@ -1,10 +1,11 @@
 export type ParseStatus = 'pending' | 'parsed' | 'user_confirmed' | 'failed';
 export type LocationSource = 'user' | 'merchant' | 'both' | 'none';
 
-// ponytail: 3 user-facing locales first; extends via keyof LANG_MAP without code changes.
-export type LocaleCode = 'en' | 'id' | 'zh' | 'de' | 'ja';
-export const SUPPORTED_LOCALES: LocaleCode[] = ['en', 'id', 'zh', 'de', 'ja'];
-export const DEFAULT_OCR_LANGS: LocaleCode[] = ['en', 'id', 'zh'];
+// ponytail: 2 user-facing locales (en + id). Latin-script union in parser handles
+// minor Latin words; expand by adding to LocaleCode + KEYWORDS.
+export type LocaleCode = 'en' | 'id';
+export const SUPPORTED_LOCALES: LocaleCode[] = ['en', 'id'];
+export const DEFAULT_OCR_LANGS: LocaleCode[] = ['en', 'id'];
 
 export interface GeocodedMerchant {
   lat: number;
@@ -56,14 +57,15 @@ export interface Receipt {
 }
 
 export interface Settings {
-  key: string;
-  activeLocationSource: 'user' | 'merchant';
+  key: 'app';
+  activeLocationSource: LocationSource;
   defaultCurrency: string;
-  theme?: string;
-  bootedAt?: number;
+  theme: string;
   ocrLanguages: LocaleCode[];
   dateLocale: LocaleCode;
   numberLocale: LocaleCode;
+  monthlyBudget?: number;
+  bootedAt?: number;
 }
 
 export interface ParsedReceipt {
@@ -82,7 +84,7 @@ export interface ParsedReceipt {
 export interface StreakState {
   current: number;
   best: number;
-  lastLogDate: string | null; // YYYY-MM-DD in local time
+  lastLogDate: string | null;
 }
 
 // ponytail: HP is derived (computeHP), not stored. No stored hp field.
@@ -90,8 +92,8 @@ export interface GameState {
   key: 'app';
   streak: StreakState;
   rp: number;
-  achievements: string[]; // unlocked ids
-  monthlyBudget: number; // major units, per month
+  achievements: string[];
+  monthlyBudget: number;
 }
 
 export interface Achievement {

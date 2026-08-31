@@ -45,7 +45,7 @@ export default function DashboardScreen() {
 
   return (
     <div className="p-2 space-y-4 max-w-3xl mx-auto">
-      <h1 className="wmg-pixel text-xl">DASHBOARD</h1>
+      <h1 className="wmg-pixel text-xl text-[var(--wmg-fg-bright)]">DASHBOARD</h1>
 
       <div className="wmg-panel p-3 grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
         <Stat label="HP" value={`${hp}/100`} />
@@ -56,7 +56,7 @@ export default function DashboardScreen() {
 
       <div className="wmg-panel p-3 text-sm">
         <div className="opacity-70">THIS MONTH</div>
-        <div className="wmg-pixel text-2xl mt-1">
+        <div className="wmg-pixel text-2xl mt-1 text-[var(--wmg-fg-bright)]">
           {monthCurrency ? formatTotal(monthTotal, monthCurrency) : `${monthTotal.toFixed(2)}`}
         </div>
         <div className="opacity-70 text-xs">{thisMonth.length} receipts</div>
@@ -80,7 +80,7 @@ export default function DashboardScreen() {
           <Link
             key={r.id}
             to={`/receipts/${r.id}`}
-            className="flex justify-between border-b border-current/20 py-1 last:border-0 hover:underline"
+            className="flex justify-between border-b border-current/20 py-1 last:border-0 hover:text-[var(--wmg-accent)]"
           >
             <span className="truncate">{r.merchant.raw ?? '—'}</span>
             <span className="opacity-70">

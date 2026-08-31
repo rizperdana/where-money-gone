@@ -67,7 +67,7 @@ export default function DetailScreen() {
         <img
           src={urlRef.current}
           alt="receipt"
-          className="w-full rounded-lg border border-[var(--wmg-fg-dim)] object-contain max-h-80"
+          className="w-full border border-[var(--wmg-fg-dim)] object-contain max-h-80"
         />
       )}
 

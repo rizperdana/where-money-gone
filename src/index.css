@@ -1,17 +1,17 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Share+Tech+Mono&family=VT323&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
-  --wmg-bg: #0a0a0a;
-  --wmg-surface: #111111;
-  --wmg-fg: #00ff41;
-  --wmg-fg-dim: #008822;
-  --wmg-fg-bright: #aaffaa;
-  --wmg-accent: #00ff41;
-  --wmg-danger: #ff3333;
+  --wmg-bg: #0f0f23;
+  --wmg-surface: #1a1a3e;
+  --wmg-fg: #f8f8f8;
+  --wmg-fg-dim: #7b7bc8;
+  --wmg-fg-bright: #ffe07a;
+  --wmg-accent: #ff6bff;
+  --wmg-danger: #ff4040;
   --wmg-warning: #ffcc00;
 }
 
@@ -23,9 +23,13 @@ body,
   min-height: 100vh;
   background: var(--wmg-bg);
   color: var(--wmg-fg);
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  font-family: 'Share Tech Mono', 'Courier New', monospace;
+  -webkit-font-smoothing: none;
+  image-rendering: pixelated;
+}
+
+img {
+  image-rendering: pixelated;
 }
 
 /* Boot animation: typewriter-style cursor blink. */
@@ -36,11 +40,8 @@ body,
 
 .wmg-cursor::after {
   content: '▌';
-  display: inline-block;
-  margin-left: 0.15em;
-  color: var(--wmg-accent);
   animation: wmg-blink 1s steps(1) infinite;
-  vertical-align: baseline;
+  margin-left: 0.1rem;
 }
 
 /* Pixel title — chunky bitmap font, used on screen headers. */
@@ -62,20 +63,40 @@ body,
   text-transform: uppercase;
 }
 
-/* Modern emphasis — clean Inter, used on currency totals. */
-.wmg-modern {
-  font-family: 'Inter', sans-serif;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-}
-
-/* Hard pixel panel: 2px border + 4px 4px 0 0 hard shadow. No border-radius. */
+/* Hard pixel panel: 3px border + 4px 4px 0 0 hard shadow. No border-radius. */
 .wmg-panel {
   background: var(--wmg-surface);
-  border: 2px solid var(--wmg-fg-dim);
+  border: 3px solid var(--wmg-fg-dim);
   box-shadow: 4px 4px 0 0 var(--wmg-fg-dim);
   padding: 0.75rem 1rem;
   color: var(--wmg-fg);
+}
+
+.wmg-panel--accent {
+  border-color: var(--wmg-accent);
+  box-shadow: 4px 4px 0 0 var(--wmg-accent);
+}
+
+/* Scanline shimmer for nav bars only. */
+@keyframes wmg-scanline {
+  0% { background-position: 0 0; }
+  100% { background-position: 0 8px; }
+}
+
+.wmg-scanlines::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 6px,
+    rgba(255, 255, 255, 0.08) 7px,
+    rgba(255, 255, 255, 0.08) 8px
+  );
+  animation: wmg-scanline 0.6s steps(8) infinite;
+  z-index: 1;
 }
 
 /* Override common Tailwind colors so screens look on-theme without rewriting every class. */

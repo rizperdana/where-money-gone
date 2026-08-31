@@ -1,4 +1,5 @@
-// 3 themes: green phosphor, cobalt blue, light. Pure CSS custom properties.
+// 2 themes: pixel-dark (16-bit deep purple) + pixel-light (warm parchment).
+// Pure CSS custom properties.
 export interface Theme {
   id: string;
   name: string;
@@ -13,45 +14,33 @@ export interface Theme {
 }
 
 export const THEMES: Record<string, Theme> = {
-  green: {
-    id: 'green',
-    name: 'Green Phosphor',
-    bg: '#0a0a0a',
-    surface: '#111111',
-    fg: '#00ff41',
-    fgDim: '#008822',
-    fgBright: '#aaffaa',
-    accent: '#00ff41',
-    danger: '#ff3333',
+  'pixel-dark': {
+    id: 'pixel-dark',
+    name: 'Pixel Dark',
+    bg: '#0f0f23',
+    surface: '#1a1a3e',
+    fg: '#f8f8f8',
+    fgDim: '#7b7bc8',
+    fgBright: '#ffe07a',
+    accent: '#ff6bff',
+    danger: '#ff4040',
     warning: '#ffcc00',
   },
-  cobalt: {
-    id: 'cobalt',
-    name: 'Cobalt Blue',
-    bg: '#0a0e1a',
-    surface: '#111726',
-    fg: '#5eb3ff',
-    fgDim: '#3a6da8',
-    fgBright: '#b8dcff',
-    accent: '#5eb3ff',
-    danger: '#ff5577',
-    warning: '#ffcc00',
-  },
-  light: {
-    id: 'light',
-    name: 'Daylight',
-    bg: '#f5f1e8',
-    surface: '#ffffff',
-    fg: '#1a4d2e',
-    fgDim: '#7a8a7e',
-    fgBright: '#0d2818',
-    accent: '#ff6b35',
-    danger: '#d63031',
-    warning: '#fdcb6e',
+  'pixel-light': {
+    id: 'pixel-light',
+    name: 'Pixel Light',
+    bg: '#f5eedc',
+    surface: '#fffbf0',
+    fg: '#1e1e1e',
+    fgDim: '#7a7060',
+    fgBright: '#1a237e',
+    accent: '#c62828',
+    danger: '#b71c1c',
+    warning: '#f57f17',
   },
 };
 
-export const DEFAULT_THEME = 'green';
+export const DEFAULT_THEME = 'pixel-dark';
 
 // Inject theme CSS vars onto <body class="theme-X">. One-time on mount.
 export function applyTheme(themeId: string): void {

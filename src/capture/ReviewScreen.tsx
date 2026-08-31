@@ -146,7 +146,7 @@ export default function ReviewScreen() {
         <img
           src={imgUrl}
           alt="receipt"
-          className="w-full rounded-lg border border-[var(--wmg-fg-dim)] object-contain max-h-64"
+          className="w-full border border-[var(--wmg-fg-dim)] object-contain max-h-64"
         />
       )}
 

@@ -75,8 +75,8 @@ export default function CaptureScreen() {
   return (
     <div className="flex flex-col items-center justify-center min-h-[80vh] p-6 gap-6">
       <TerminalHeader route="CAPTURE" />
-      <h1 className="wmg-title">[ CAPTURE ]</h1>
-      <p className="text-[var(--wmg-fg-dim)] text-center max-w-xs">
+      <h1 className="text-2xl font-semibold tracking-tight">Capture</h1>
+      <p className="text-muted-foreground text-center max-w-xs">
         Point camera at a receipt. OCR runs on-device. Nothing leaves this phone.
       </p>
       <Button
@@ -86,7 +86,7 @@ export default function CaptureScreen() {
         disabled={busy}
       >
         <FaCamera />
-        {busy ? 'PROCESSING...' : 'ADD RECEIPT'}
+        {busy ? 'Processing...' : 'Add receipt'}
       </Button>
       <input
         ref={inputRef}
@@ -96,7 +96,7 @@ export default function CaptureScreen() {
         className="hidden"
         onChange={onFile}
       />
-      {error && <p className="text-[var(--wmg-danger)] text-sm">{error}</p>}
+      {error && <p className="text-destructive text-sm">{error}</p>}
     </div>
   );
 }

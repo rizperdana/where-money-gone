@@ -57,19 +57,19 @@ export default function DashboardScreen() {
 
   return (
     <div className="p-2 space-y-4 max-w-3xl mx-auto">
-      <h1 className="wmg-pixel text-xl text-[var(--wmg-fg-bright)]">DASHBOARD</h1>
+      <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
 
       <Card>
-        <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+        <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-6 text-sm">
           <Stat label="HP" value={`${hp}/100`} />
           <Stat label="RP" value={String(game.rp)} />
           <Stat
-            label="STREAK"
+            label="Streak"
             value={String(game.streak.current)}
             hint={`best ${game.streak.best}`}
           />
           <Stat
-            label="ACHIEVEMENTS"
+            label="Achievements"
             value={`${game.achievements.length}/${ACHIEVEMENTS.length}`}
           />
         </CardContent>
@@ -77,31 +77,35 @@ export default function DashboardScreen() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="opacity-70 text-sm">THIS MONTH</CardTitle>
+          <CardTitle>This month</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="wmg-pixel text-2xl text-[var(--wmg-fg-bright)]">
+          <div className="text-2xl font-semibold">
             {monthCurrency
               ? formatTotal(monthTotal, monthCurrency)
               : `${monthTotal.toFixed(2)}`}
           </div>
-          <div className="opacity-70 text-xs">{thisMonth.length} receipts</div>
+          <div className="text-xs text-muted-foreground">
+            {thisMonth.length} receipts
+          </div>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle className="opacity-70 text-sm">TOP MERCHANTS</CardTitle>
+          <CardTitle>Top merchants</CardTitle>
         </CardHeader>
         <CardContent>
-          {topMerchants.length === 0 && <div className="opacity-50">No data yet</div>}
+          {topMerchants.length === 0 && (
+            <div className="text-muted-foreground">No data yet</div>
+          )}
           {topMerchants.map((m) => (
             <div
               key={m.name}
-              className="flex justify-between border-b border-[var(--wmg-fg-dim)]/20 py-1 last:border-0"
+              className="flex justify-between border-b last:border-0 py-1"
             >
               <span className="truncate">{m.name}</span>
-              <span className="opacity-70">×{m.count}</span>
+              <span className="text-muted-foreground">×{m.count}</span>
             </div>
           ))}
         </CardContent>
@@ -109,18 +113,20 @@ export default function DashboardScreen() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="opacity-70 text-sm">RECENT</CardTitle>
+          <CardTitle>Recent</CardTitle>
         </CardHeader>
         <CardContent>
-          {recent.length === 0 && <div className="opacity-50">No data yet</div>}
+          {recent.length === 0 && (
+            <div className="text-muted-foreground">No data yet</div>
+          )}
           {recent.map((r) => (
             <Link
               key={r.id}
               to={`/receipts/${r.id}`}
-              className="flex justify-between border-b border-[var(--wmg-fg-dim)]/20 py-1 last:border-0 hover:text-[var(--wmg-accent)]"
+              className="flex justify-between border-b last:border-0 py-1 hover:underline"
             >
               <span className="truncate">{r.merchant.raw ?? '—'}</span>
-              <span className="opacity-70">
+              <span className="text-muted-foreground">
                 {r.currency ? formatTotal(r.total ?? 0, r.currency) : '—'}
               </span>
             </Link>
@@ -134,9 +140,9 @@ export default function DashboardScreen() {
 function Stat({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
     <div>
-      <div className="opacity-70 text-xs">{label}</div>
-      <div className="wmg-pixel text-xl">{value}</div>
-      {hint && <div className="opacity-50 text-xs">{hint}</div>}
+      <div className="text-xs text-muted-foreground">{label}</div>
+      <div className="text-xl font-semibold">{value}</div>
+      {hint && <div className="text-xs text-muted-foreground">{hint}</div>}
     </div>
   );
 }

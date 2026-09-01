@@ -12,6 +12,7 @@ import { importJson } from '../io/import';
 import { notify } from './toast-bus';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Card, CardContent } from '@/components/ui/card';
 import {
   Select,
   SelectContent,
@@ -114,7 +115,7 @@ export default function ListScreen() {
       <TerminalHeader route="RECEIPTS" />
 
       <div className="flex items-center justify-between gap-2 flex-wrap">
-        <h1 className="wmg-title">[ RECEIPTS ]</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Receipts</h1>
         <div className="flex gap-2 flex-wrap">
           <Button variant="outline" onClick={() => importRef.current?.click()}>
             <FaFileImport /> Import
@@ -138,74 +139,85 @@ export default function ListScreen() {
         </div>
       </div>
 
-      <div className="wmg-panel p-2 flex flex-col md:flex-row gap-2 text-sm">
-        <Input
-          type="text"
-          placeholder="Search merchant..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="flex-1"
-        />
-        <Select value={range} onValueChange={(v) => setRange(v as DateRange)}>
-          <SelectTrigger className="w-full md:w-[180px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All time</SelectItem>
-            <SelectItem value="today">Today</SelectItem>
-            <SelectItem value="week">This week</SelectItem>
-            <SelectItem value="month">This month</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+      <Card>
+        <CardContent className="pt-6 flex flex-col md:flex-row gap-2 text-sm">
+          <Input
+            type="text"
+            placeholder="Search merchant..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="flex-1"
+          />
+          <Select value={range} onValueChange={(v) => setRange(v as DateRange)}>
+            <SelectTrigger className="w-full md:w-[180px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All time</SelectItem>
+              <SelectItem value="today">Today</SelectItem>
+              <SelectItem value="week">This week</SelectItem>
+              <SelectItem value="month">This month</SelectItem>
+            </SelectContent>
+          </Select>
+        </CardContent>
+      </Card>
 
       <StreakHeader />
 
       {loaded && rows.length === 0 && (
-        <div className="wmg-panel flex flex-col gap-3 text-sm">
-          <p className="wmg-cursor">{say('empty_receipts', 'list')}</p>
-          <p className="text-[var(--wmg-fg-dim)]">
-            DATA STORAGE: local-only. No cloud. No backup. You are the backup.
-          </p>
-        </div>
+        <Card>
+          <CardContent className="pt-6 flex flex-col gap-2 text-sm">
+            <p>{say('empty_receipts', 'list')}</p>
+            <p className="text-muted-foreground">
+              Data storage: local-only. No cloud. No backup. You are the backup.
+            </p>
+          </CardContent>
+        </Card>
       )}
 
       {loaded && rows.length > 0 && filtered.length === 0 && (
-        <div className="wmg-panel text-sm opacity-70 p-3">
-          No receipts match your filter.
-        </div>
+        <Card>
+          <CardContent className="pt-6 text-sm text-muted-foreground">
+            No receipts match your filter.
+          </CardContent>
+        </Card>
       )}
 
       <ul className="flex flex-col gap-2">
         {filtered.map((r) => (
           <li key={r.id}>
-            <button
-              className="wmg-panel w-full flex items-center gap-3 text-left hover:opacity-80"
+            <Card
+              className="cursor-pointer hover:bg-accent transition-colors"
               onClick={() => navigate(`/receipts/${r.id}`)}
             >
-              {thumbs[r.id] && (
-                <img
-                  src={thumbs[r.id]}
-                  alt=""
-                  className="w-14 h-14 object-cover"
-                  style={{ imageRendering: 'pixelated' }}
-                />
-              )}
-              <div className="flex-1 min-w-0">
-                <p className="font-medium truncate">
-                  {r.merchant.normalized || r.merchant.raw || 'Untitled'}
-                </p>
-                <p className="text-[var(--wmg-fg-dim)] text-sm">
-                  {r.purchaseAt ? new Date(r.purchaseAt).toLocaleDateString() : 'No date'}
-                </p>
-              </div>
-              <div className="text-right">
-                <p className="font-semibold">{formatTotal(r.total, r.currency)}</p>
-                <p className="text-[var(--wmg-fg-dim)] text-xs uppercase">
-                  {r.locationSource}
-                </p>
-              </div>
-            </button>
+              <CardContent className="pt-6 flex items-center gap-3">
+                {thumbs[r.id] && (
+                  <img
+                    src={thumbs[r.id]}
+                    alt=""
+                    className="w-14 h-14 object-cover rounded"
+                  />
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium truncate">
+                    {r.merchant.normalized || r.merchant.raw || 'Untitled'}
+                  </p>
+                  <p className="text-muted-foreground text-sm">
+                    {r.purchaseAt
+                      ? new Date(r.purchaseAt).toLocaleDateString()
+                      : 'No date'}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="font-semibold">
+                    {formatTotal(r.total, r.currency)}
+                  </p>
+                  <p className="text-muted-foreground text-xs uppercase">
+                    {r.locationSource}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
           </li>
         ))}
       </ul>

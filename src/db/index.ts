@@ -33,7 +33,7 @@ const DEFAULT_SETTINGS: Settings = {
   key: 'app',
   activeLocationSource: 'user',
   defaultCurrency: '',
-  theme: 'pixel-dark',
+  theme: 'light',
   ocrLanguages: [...DEFAULT_OCR_LANGS],
   dateLocale: 'en',
   numberLocale: 'en',
@@ -51,10 +51,17 @@ export async function getSettings(): Promise<Settings> {
   return db.transaction('rw', db.settings, async () => {
     const existing = await db.settings.get('app');
     if (existing) {
-      // One-time migration: old themes (green/cobalt/light/c64) → pixel-dark.
+      // One-time migration: old theme ids → light.
       let s = existing;
-      const OLD_THEMES = ['green', 'cobalt', 'light', 'c64'];
-      if (!s.theme || OLD_THEMES.includes(s.theme)) s = { ...s, theme: 'pixel-dark' };
+      const OLD_THEMES = [
+        'green',
+        'cobalt',
+        'light',
+        'c64',
+        'pixel-dark',
+        'pixel-light',
+      ];
+      if (!s.theme || OLD_THEMES.includes(s.theme)) s = { ...s, theme: 'light' };
       // v3: backfill new locale fields.
       if (!s.ocrLanguages || !s.dateLocale || !s.numberLocale) {
         s = {
@@ -82,7 +89,7 @@ export async function saveSettings(patch: Partial<Settings>): Promise<Settings> 
 }
 
 export async function getGame(): Promise<GameState> {
-  return db.transaction('r', db.gamification, async () => {
+  return db.transaction('rw', db.gamification, async () => {
     const existing = await db.gamification.get('app');
     if (existing) return existing;
     await db.gamification.put(DEFAULT_GAME);

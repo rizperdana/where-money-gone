@@ -1,268 +1,71 @@
-@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Share+Tech+Mono&family=VT323&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --wmg-bg: #0f0f23;
-  --wmg-surface: #1a1a3e;
-  --wmg-fg: #f8f8f8;
-  --wmg-fg-dim: #7b7bc8;
-  --wmg-fg-bright: #ffe07a;
-  --wmg-accent: #ff6bff;
-  --wmg-danger: #ff4040;
-  --wmg-warning: #ffcc00;
-
-  /* Shadcn semantic tokens → wmg retro palette. Single source of truth stays in --wmg-*.
-     All shadcn components therefore inherit the 16-bit theme. */
-  --background: var(--wmg-bg);
-  --foreground: var(--wmg-fg);
-  --card: var(--wmg-surface);
-  --card-foreground: var(--wmg-fg);
-  --popover: var(--wmg-surface);
-  --popover-foreground: var(--wmg-fg);
-  --primary: var(--wmg-accent);
-  --primary-foreground: var(--wmg-bg);
-  --secondary: var(--wmg-surface);
-  --secondary-foreground: var(--wmg-fg);
-  --muted: var(--wmg-surface);
-  --muted-foreground: var(--wmg-fg-dim);
-  --accent: var(--wmg-accent);
-  --accent-foreground: var(--wmg-bg);
-  --destructive: var(--wmg-danger);
-  --destructive-foreground: var(--wmg-fg);
-  --border: var(--wmg-fg-dim);
-  --input: var(--wmg-fg-dim);
-  --ring: var(--wmg-accent);
-  --radius: 0;
-  --sidebar: var(--wmg-surface);
-  --sidebar-foreground: var(--wmg-fg);
-  --sidebar-primary: var(--wmg-accent);
-  --sidebar-primary-foreground: var(--wmg-bg);
-  --sidebar-accent: var(--wmg-accent);
-  --sidebar-accent-foreground: var(--wmg-bg);
-  --sidebar-border: var(--wmg-fg-dim);
-  --sidebar-ring: var(--wmg-accent);
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --radius: 0.625rem;
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
 }
 
-html,
-body,
-#root {
-  margin: 0;
-  padding: 0;
-  min-height: 100vh;
-  background: var(--wmg-bg);
-  color: var(--wmg-fg);
-  font-family: 'Share Tech Mono', 'Courier New', monospace;
-  -webkit-font-smoothing: none;
-  image-rendering: pixelated;
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
 }
 
-img {
-  image-rendering: pixelated;
-}
-
-/* Boot animation: typewriter-style cursor blink. */
-@keyframes wmg-blink {
-  0%, 50% { opacity: 1; }
-  51%, 100% { opacity: 0; }
-}
-
-.wmg-cursor::after {
-  content: '▌';
-  animation: wmg-blink 1s steps(1) infinite;
-  margin-left: 0.1rem;
-}
-
-/* Pixel title — chunky bitmap font, used on screen headers. */
-.wmg-title {
-  font-family: 'Press Start 2P', monospace;
-  font-size: 1.125rem;
-  line-height: 1.4;
-  letter-spacing: 0.05em;
-  color: var(--wmg-fg-bright);
-  text-transform: uppercase;
-}
-
-/* Pixel accent — small caps, Press Start 2P, for badges / labels. */
-.wmg-pixel {
-  font-family: 'Press Start 2P', monospace;
-  font-size: 0.625rem;
-  line-height: 1.6;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
-
-/* Hard pixel panel: 3px border + 4px 4px 0 0 hard shadow. No border-radius. */
-.wmg-panel {
-  background: var(--wmg-surface);
-  border: 3px solid var(--wmg-fg-dim);
-  box-shadow: 4px 4px 0 0 var(--wmg-fg-dim);
-  padding: 0.75rem 1rem;
-  color: var(--wmg-fg);
-}
-
-.wmg-panel--accent {
-  border-color: var(--wmg-accent);
-  box-shadow: 4px 4px 0 0 var(--wmg-accent);
-}
-
-/* Scanline shimmer for nav bars only. */
-@keyframes wmg-scanline {
-  0% { background-position: 0 0; }
-  100% { background-position: 0 8px; }
-}
-
-.wmg-scanlines::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: repeating-linear-gradient(
-    to bottom,
-    transparent 0,
-    transparent 6px,
-    rgba(255, 255, 255, 0.08) 7px,
-    rgba(255, 255, 255, 0.08) 8px
-  );
-  animation: wmg-scanline 0.6s steps(8) infinite;
-  z-index: 1;
-}
-
-/* Override common Tailwind colors so screens look on-theme without rewriting every class. */
-.text-slate-100,
-.text-slate-200,
-.text-slate-300 {
-  color: var(--wmg-fg) !important;
-}
-
-.text-slate-400,
-.text-slate-500 {
-  color: var(--wmg-fg-dim) !important;
-}
-
-.bg-slate-900,
-.bg-slate-800 {
-  background-color: var(--wmg-bg) !important;
-}
-
-.bg-slate-700,
-.bg-slate-600 {
-  background-color: var(--wmg-surface) !important;
-}
-
-.border-slate-700,
-.border-slate-600,
-.border-slate-500 {
-  border-color: var(--wmg-fg-dim) !important;
-}
-
-.text-sky-400,
-.text-sky-500,
-.text-blue-400 {
-  color: var(--wmg-accent) !important;
-}
-
-.bg-sky-500,
-.bg-blue-500 {
-  background-color: var(--wmg-accent) !important;
-}
-
-.text-red-400,
-.text-red-500,
-.text-rose-500 {
-  color: var(--wmg-danger) !important;
-}
-
-.text-amber-400,
-.text-yellow-400 {
-  color: var(--wmg-warning) !important;
-}
-
-/* Pixel-theme overrides for shadcn primitives. Keep rounded-* = 0, hard borders,
-   4px shadow. Per-slot rules so changes don't have to leak into each component. */
-[data-slot='card'],
-[data-slot='card'] * {
-  border-radius: 0 !important;
-}
-[data-slot='card'] {
-  border: 3px solid var(--wmg-fg-dim) !important;
-  box-shadow: 4px 4px 0 0 var(--wmg-fg-dim);
-}
-[data-slot='card'][data-px='accent'] {
-  border-color: var(--wmg-accent) !important;
-  box-shadow: 4px 4px 0 0 var(--wmg-accent);
-}
-
-[data-slot='button'] {
-  border-radius: 0 !important;
-  border-width: 3px !important;
-  box-shadow: 3px 3px 0 0 var(--wmg-fg-dim);
-  font-family: 'Press Start 2P', monospace;
-  font-size: 0.625rem;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  padding: 0.5rem 0.75rem;
-  height: auto;
-  gap: 0.4rem;
-}
-[data-slot='button']:active:not(:disabled) {
-  transform: translate(3px, 3px);
-  box-shadow: 0 0 0 0 var(--wmg-fg-dim);
-}
-[data-slot='button'][data-variant='destructive'] {
-  box-shadow: 3px 3px 0 0 var(--wmg-danger);
-}
-[data-slot='button'][data-variant='outline'] {
-  background: transparent !important;
-}
-
-[data-slot='input'],
-[data-slot='select-trigger'] {
-  border-radius: 0 !important;
-  border: 2px solid var(--wmg-fg-dim) !important;
-  background: var(--wmg-bg) !important;
-  color: var(--wmg-fg) !important;
-  font-family: 'Share Tech Mono', monospace !important;
-  box-shadow: none !important;
-}
-[data-slot='input']:focus-visible,
-[data-slot='select-trigger']:focus-visible {
-  border-color: var(--wmg-accent) !important;
-  outline: none !important;
-}
-
-[data-slot='badge'] {
-  border-radius: 0 !important;
-  border: 2px solid currentColor;
-  font-family: 'Press Start 2P', monospace;
-  font-size: 0.5rem;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  padding: 0.15rem 0.4rem;
-}
-
-[data-slot='dialog-popup'],
-[data-slot='dialog-overlay'] {
-  border-radius: 0 !important;
-}
-[data-slot='dialog-popup'] {
-  background: var(--wmg-surface) !important;
-  color: var(--wmg-fg) !important;
-  border: 3px solid var(--wmg-fg-dim) !important;
-  box-shadow: 6px 6px 0 0 var(--wmg-fg-dim);
-}
-[data-slot='dialog-overlay'] {
-  background: rgba(0, 0, 0, 0.7) !important;
-}
-
-[data-slot='menu-item'],
-[data-slot='select-item'] {
-  border-radius: 0 !important;
-  font-family: 'Share Tech Mono', monospace;
-}
-
-[data-slot='switch'] {
-  border-radius: 0 !important;
-  border: 2px solid var(--wmg-fg-dim);
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
 }

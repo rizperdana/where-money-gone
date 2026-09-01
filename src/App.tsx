@@ -7,7 +7,6 @@ import BootScreen from './ui/BootScreen';
 import DashboardScreen from './ui/DashboardScreen';
 import DetailScreen from './ui/DetailScreen';
 import ListScreen from './ui/ListScreen';
-import RoadmapScreen from './ui/RoadmapScreen';
 import SettingsScreen from './ui/SettingsScreen';
 import TerminalToastHost from './ui/TerminalToast';
 import { applyTheme, DEFAULT_THEME } from './theme/themes';
@@ -49,7 +48,6 @@ export default function App() {
               <Route path="/dashboard" element={<DashboardScreen />} />
               <Route path="/capture" element={<CaptureScreen />} />
               <Route path="/review/:id" element={<ReviewScreen />} />
-              <Route path="/roadmap" element={<RoadmapScreen />} />
               <Route path="/settings" element={<SettingsScreen />} />
               <Route path="/receipts" element={<ListScreen />} />
               <Route path="/receipts/:id" element={<DetailScreen />} />

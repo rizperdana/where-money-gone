@@ -86,7 +86,7 @@ export default function SettingsScreen() {
       <TerminalHeader route="SETTINGS" />
 
       <div className="flex items-center justify-between">
-        <h1 className="wmg-title">[ SETTINGS ]</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
         <Button variant="ghost" size="sm" onClick={() => navigate('/receipts')}>
           <FaArrowLeft /> Back
         </Button>
@@ -94,34 +94,20 @@ export default function SettingsScreen() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="wmg-pixel">THEME</CardTitle>
+          <CardTitle>Theme</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 gap-2">
             {Object.values(THEMES).map((t) => {
               const active = settings.theme === t.id;
               return (
-                <button
+                <Button
                   key={t.id}
+                  variant={active ? 'default' : 'outline'}
                   onClick={() => pickTheme(t.id)}
-                  className={`wmg-panel hover:opacity-80 flex flex-col items-center gap-2 ${
-                    active ? 'outline outline-2 outline-[var(--wmg-accent)]' : ''
-                  }`}
-                  style={{
-                    background: t.surface,
-                    color: t.fg,
-                    borderColor: active ? t.accent : t.fgDim,
-                  }}
                 >
-                  <span
-                    className="w-8 h-8 border-2"
-                    style={{
-                      background: `linear-gradient(135deg, ${t.fg} 0 50%, ${t.accent} 50% 100%)`,
-                      borderColor: t.fgDim,
-                      imageRendering: 'pixelated',
-                    }}
-                  />
-                </button>
+                  {t.name}
+                </Button>
               );
             })}
           </div>
@@ -130,10 +116,10 @@ export default function SettingsScreen() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="wmg-pixel">OCR LANGUAGES</CardTitle>
+          <CardTitle>OCR languages</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
-          <p className="text-xs text-[var(--wmg-fg-dim)]">
+          <p className="text-xs text-muted-foreground">
             Languages Tesseract will recognize on receipts. More = larger worker download.
           </p>
           {SUPPORTED_LOCALES.map((code) => {
@@ -154,7 +140,7 @@ export default function SettingsScreen() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="wmg-pixel">DATE FORMAT</CardTitle>
+          <CardTitle>Date format</CardTitle>
         </CardHeader>
         <CardContent>
           <Select
@@ -177,7 +163,7 @@ export default function SettingsScreen() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="wmg-pixel">NUMBER FORMAT</CardTitle>
+          <CardTitle>Number format</CardTitle>
         </CardHeader>
         <CardContent>
           <Select
@@ -200,10 +186,10 @@ export default function SettingsScreen() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="wmg-pixel">MONTHLY BUDGET</CardTitle>
+          <CardTitle>Monthly budget</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-xs text-[var(--wmg-fg-dim)] mb-2">
+          <p className="text-xs text-muted-foreground mb-2">
             Used for HP calculation. Leave 0 to disable.
           </p>
           <div className="flex gap-2">
@@ -216,7 +202,7 @@ export default function SettingsScreen() {
               className="flex-1"
             />
             <Button onClick={saveBudget}>
-              <FaFloppyDisk /> SAVE
+              <FaFloppyDisk /> Save
             </Button>
           </div>
         </CardContent>
@@ -224,13 +210,13 @@ export default function SettingsScreen() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="wmg-pixel">ABOUT</CardTitle>
+          <CardTitle>About</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="wmg-pixel text-[0.5rem] text-[var(--wmg-fg-dim)]">
-            Where Money Gone — v2.2
+          <p className="text-xs text-muted-foreground">
+            Where Money Gone — v2.3
           </p>
-          <p className="text-[var(--wmg-fg-dim)] text-xs mt-1">
+          <p className="text-xs text-muted-foreground mt-1">
             Local-only. No cloud. No backup. You are the backup.
           </p>
         </CardContent>

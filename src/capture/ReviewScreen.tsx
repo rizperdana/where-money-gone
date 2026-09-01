@@ -107,7 +107,7 @@ export default function ReviewScreen() {
     })();
   }, [r, id]);
 
-  if (!r) return <p className="p-6 text-[var(--wmg-fg-dim)]">{say('loading', id)}</p>;
+  if (!r) return <p className="p-6 text-muted-foreground">{say('loading', id)}</p>;
 
   const imgUrl = urlRef.current;
 
@@ -128,7 +128,7 @@ export default function ReviewScreen() {
       <TerminalHeader route="REVIEW" />
 
       <div className="flex items-center justify-between">
-        <h1 className="wmg-title">[ REVIEW ]</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Review</h1>
         <Button variant="ghost" size="sm" onClick={() => navigate('/receipts')}>
           <FaArrowLeft /> Cancel
         </Button>
@@ -138,19 +138,19 @@ export default function ReviewScreen() {
         <img
           src={imgUrl}
           alt="receipt"
-          className="w-full border border-[var(--wmg-fg-dim)] object-contain max-h-64"
+          className="w-full border rounded object-contain max-h-64"
         />
       )}
 
       {progress !== null && (
         <Card>
-          <CardContent className="text-sm">
-            <p className="text-[var(--wmg-fg-bright)]">
+          <CardContent className="pt-6 text-sm">
+            <p>
               {say('loading', id)} {Math.round(progress * 100)}%
             </p>
-            <div className="h-2 bg-[var(--wmg-surface)] border border-[var(--wmg-fg-dim)] mt-1">
+            <div className="h-2 bg-muted border rounded mt-1 overflow-hidden">
               <div
-                className="h-full bg-[var(--wmg-accent)]"
+                className="h-full bg-primary"
                 style={{ width: `${progress * 100}%` }}
               />
             </div>
@@ -158,7 +158,7 @@ export default function ReviewScreen() {
         </Card>
       )}
 
-      {error && <p className="text-[var(--wmg-danger)] text-sm">{error}</p>}
+      {error && <p className="text-destructive text-sm">{error}</p>}
 
       <div className="flex flex-col gap-1">
         <Label htmlFor="merchant">Merchant</Label>
@@ -248,7 +248,7 @@ export default function ReviewScreen() {
       </div>
 
       <Card>
-        <CardContent className="text-sm flex flex-col gap-2">
+        <CardContent className="pt-6 text-sm flex flex-col gap-2">
           <Label>Location used for analytics</Label>
           <div className="flex gap-2">
             <Button
@@ -269,13 +269,13 @@ export default function ReviewScreen() {
             </Button>
           </div>
           {r.merchant.geocoded && (
-            <p className="text-[var(--wmg-fg-dim)] text-xs">
+            <p className="text-muted-foreground text-xs">
               {r.merchant.geocoded.displayName}
             </p>
           )}
           {settings && (
             <button
-              className="text-[var(--wmg-fg-dim)] text-xs underline self-start"
+              className="text-muted-foreground text-xs underline self-start"
               onClick={() => {
                 const next = r.locationSource === 'user' ? 'merchant' : 'user';
                 update({ locationSource: next });
@@ -289,7 +289,7 @@ export default function ReviewScreen() {
       </Card>
 
       <Button onClick={save} size="lg">
-        <FaFloppyDisk /> SAVE RECEIPT
+        <FaFloppyDisk /> Save receipt
       </Button>
     </div>
   );

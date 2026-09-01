@@ -14,9 +14,13 @@ export default function BootScreen({ onDone }: { onDone: () => void }) {
   }, [onDone]);
 
   return (
-    <div className="wmg-panel m-2 flex items-center justify-center min-h-[60vh]">
-      <h1 className={`wmg-title text-2xl ${done ? 'wmg-cursor' : ''}`}>
-        WHERE MONEY GONE
+    <div className="m-2 flex items-center justify-center min-h-[60vh]">
+      <h1
+        className={`text-2xl font-semibold tracking-tight ${
+          done ? 'after:content-["_"] after:ml-0.5 after:animate-pulse' : ''
+        }`}
+      >
+        Where Money Gone
       </h1>
     </div>
   );

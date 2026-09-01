@@ -43,8 +43,8 @@ export default function DetailScreen() {
     navigate('/receipts');
   }
 
-  if (notFound) return <p className="p-6 text-[var(--wmg-fg-dim)]">Receipt not found.</p>;
-  if (!r) return <p className="p-6 text-[var(--wmg-fg-dim)]">{say('loading', id)}</p>;
+  if (notFound) return <p className="p-6 text-muted-foreground">Receipt not found.</p>;
+  if (!r) return <p className="p-6 text-muted-foreground">{say('loading', id)}</p>;
 
   const fmtNum = (n: number | null) => (n === null ? '—' : n.toFixed(2));
 
@@ -56,11 +56,7 @@ export default function DetailScreen() {
         <Button variant="ghost" size="sm" onClick={() => navigate('/receipts')}>
           <FaArrowLeft /> Back
         </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => navigate(`/review/${r.id}`)}
-        >
+        <Button variant="ghost" size="sm" onClick={() => navigate(`/review/${r.id}`)}>
           <FaPenToSquare /> Edit
         </Button>
       </div>
@@ -69,35 +65,35 @@ export default function DetailScreen() {
         <img
           src={urlRef.current}
           alt="receipt"
-          className="w-full border border-[var(--wmg-fg-dim)] object-contain max-h-80"
+          className="w-full border rounded object-contain max-h-80"
         />
       )}
 
-      <h1 className="wmg-title">
+      <h1 className="text-2xl font-semibold tracking-tight">
         {r.merchant.normalized || r.merchant.raw || 'Untitled'}
       </h1>
 
       <Card>
         <CardHeader>
-          <CardTitle className="opacity-70 text-sm">DETAILS</CardTitle>
+          <CardTitle>Details</CardTitle>
         </CardHeader>
         <CardContent>
           <dl className="grid grid-cols-2 gap-2 text-sm">
-            <dt className="text-[var(--wmg-fg-dim)]">Date</dt>
+            <dt className="text-muted-foreground">Date</dt>
             <dd>
               {r.purchaseAt ? new Date(r.purchaseAt).toLocaleDateString() : '—'}
             </dd>
-            <dt className="text-[var(--wmg-fg-dim)]">Total</dt>
+            <dt className="text-muted-foreground">Total</dt>
             <dd>{formatTotal(r.total, r.currency)}</dd>
-            <dt className="text-[var(--wmg-fg-dim)]">Subtotal</dt>
+            <dt className="text-muted-foreground">Subtotal</dt>
             <dd>{fmtNum(r.subtotal)}</dd>
-            <dt className="text-[var(--wmg-fg-dim)]">Tax</dt>
+            <dt className="text-muted-foreground">Tax</dt>
             <dd>{fmtNum(r.tax)}</dd>
-            <dt className="text-[var(--wmg-fg-dim)]">Location</dt>
+            <dt className="text-muted-foreground">Location</dt>
             <dd className="uppercase">{r.locationSource}</dd>
             {r.userLocation && (
               <>
-                <dt className="text-[var(--wmg-fg-dim)]">My GPS</dt>
+                <dt className="text-muted-foreground">My GPS</dt>
                 <dd>
                   {r.userLocation.lat.toFixed(4)}, {r.userLocation.lng.toFixed(4)}
                 </dd>
@@ -105,7 +101,7 @@ export default function DetailScreen() {
             )}
             {r.merchant.geocoded && (
               <>
-                <dt className="text-[var(--wmg-fg-dim)]">Merchant</dt>
+                <dt className="text-muted-foreground">Merchant</dt>
                 <dd>{r.merchant.geocoded.displayName}</dd>
               </>
             )}
@@ -116,14 +112,16 @@ export default function DetailScreen() {
       {r.lineItems.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="opacity-70 text-sm">ITEMS</CardTitle>
+            <CardTitle>Items</CardTitle>
           </CardHeader>
           <CardContent>
             <ul className="flex flex-col gap-1 text-sm">
               {r.lineItems.map((item, i) => (
                 <li key={i} className="flex justify-between">
                   <span>{item.description}</span>
-                  <span>{item.total !== null ? item.total.toFixed(2) : '—'}</span>
+                  <span>
+                    {item.total !== null ? item.total.toFixed(2) : '—'}
+                  </span>
                 </li>
               ))}
             </ul>
@@ -135,7 +133,7 @@ export default function DetailScreen() {
         <DialogTrigger
           render={
             <Button variant="destructive" size="lg">
-              <FaTrash /> Delete Receipt
+              <FaTrash /> Delete receipt
             </Button>
           }
         />
@@ -147,9 +145,7 @@ export default function DetailScreen() {
             <DialogDescription>{say('delete_confirm', r.id)}</DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2">
-            <DialogClose
-              render={<Button variant="outline">Keep</Button>}
-            />
+            <DialogClose render={<Button variant="outline">Keep</Button>} />
             <Button variant="destructive" onClick={onDelete}>
               <FaTrash /> Delete
             </Button>

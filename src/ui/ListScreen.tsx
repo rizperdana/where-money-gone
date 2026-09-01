@@ -3,8 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { FaFileImport, FaFileExport, FaPlus } from 'react-icons/fa6';
 import { db } from '../db';
 import type { Receipt } from '../types';
-import TerminalHeader from './TerminalHeader';
-import StreakHeader from './StreakHeader';
 import { say } from '../narrator/narrator';
 import { formatTotal } from '../format';
 import { exportCsv, exportJson } from '../io/export';
@@ -39,6 +37,8 @@ function inRange(createdAt: number, range: DateRange): boolean {
   return true;
 }
 
+type SortMode = 'date' | 'amount';
+
 export default function ListScreen() {
   const navigate = useNavigate();
   const [rows, setRows] = useState<Receipt[]>([]);
@@ -46,6 +46,7 @@ export default function ListScreen() {
   const [loaded, setLoaded] = useState(false);
   const [search, setSearch] = useState('');
   const [range, setRange] = useState<DateRange>('all');
+  const [sort, setSort] = useState<SortMode>('date');
   const importRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -72,7 +73,7 @@ export default function ListScreen() {
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return rows.filter((r) => {
+    const result = rows.filter((r) => {
       if (!inRange(r.createdAt, range)) return false;
       if (q) {
         const m = (r.merchant.normalized ?? r.merchant.raw ?? '').toLowerCase();
@@ -80,7 +81,15 @@ export default function ListScreen() {
       }
       return true;
     });
-  }, [rows, search, range]);
+    if (sort === 'amount') {
+      result.sort((a, b) => (b.total ?? 0) - (a.total ?? 0));
+    }
+    return result;
+  }, [rows, search, range, sort]);
+
+  const filteredTotal = filtered.reduce((s, r) => s + (r.total ?? 0), 0);
+  const filteredCurrency =
+    filtered.find((r) => r.currency)?.currency ?? null;
 
   async function handleExportJson() {
     await exportJson(filtered);
@@ -112,8 +121,6 @@ export default function ListScreen() {
 
   return (
     <div className="max-w-3xl mx-auto p-4 flex flex-col gap-4 min-h-screen">
-      <TerminalHeader route="RECEIPTS" />
-
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <h1 className="text-2xl font-semibold tracking-tight">Receipts</h1>
         <div className="flex gap-2 flex-wrap">
@@ -140,7 +147,7 @@ export default function ListScreen() {
       </div>
 
       <Card>
-        <CardContent className="pt-6 flex flex-col md:flex-row gap-2 text-sm">
+        <CardContent className="pt-6 flex flex-col gap-3 text-sm">
           <Input
             type="text"
             placeholder="Search merchant..."
@@ -148,21 +155,30 @@ export default function ListScreen() {
             onChange={(e) => setSearch(e.target.value)}
             className="flex-1"
           />
-          <Select value={range} onValueChange={(v) => setRange(v as DateRange)}>
-            <SelectTrigger className="w-full md:w-[180px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All time</SelectItem>
-              <SelectItem value="today">Today</SelectItem>
-              <SelectItem value="week">This week</SelectItem>
-              <SelectItem value="month">This month</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex gap-2">
+            <Select value={range} onValueChange={(v) => setRange(v as DateRange)}>
+              <SelectTrigger className="w-full md:w-[160px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All time</SelectItem>
+                <SelectItem value="today">Today</SelectItem>
+                <SelectItem value="week">This week</SelectItem>
+                <SelectItem value="month">This month</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={sort} onValueChange={(v) => setSort(v as SortMode)}>
+              <SelectTrigger className="w-full md:w-[160px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="date">Sort by date</SelectItem>
+                <SelectItem value="amount">Sort by amount</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </CardContent>
       </Card>
-
-      <StreakHeader />
 
       {loaded && rows.length === 0 && (
         <Card>
@@ -181,6 +197,18 @@ export default function ListScreen() {
             No receipts match your filter.
           </CardContent>
         </Card>
+      )}
+
+      {/* Summary row */}
+      {loaded && filtered.length > 0 && (
+        <p className="text-sm text-muted-foreground">
+          {filtered.length} receipt{filtered.length !== 1 ? 's' : ''} ·{' '}
+          <span className="tabular-nums font-medium text-foreground">
+            {filteredCurrency
+              ? formatTotal(filteredTotal, filteredCurrency)
+              : filteredTotal.toFixed(2)}
+          </span>
+        </p>
       )}
 
       <ul className="flex flex-col gap-2">
@@ -209,11 +237,8 @@ export default function ListScreen() {
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="font-semibold">
+                  <p className="font-semibold tabular-nums">
                     {formatTotal(r.total, r.currency)}
-                  </p>
-                  <p className="text-muted-foreground text-xs uppercase">
-                    {r.locationSource}
                   </p>
                 </div>
               </CardContent>

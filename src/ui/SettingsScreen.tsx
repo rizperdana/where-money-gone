@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { FaArrowLeft, FaFloppyDisk } from 'react-icons/fa6';
 import { getGame, getSettings, saveGame, saveSettings } from '../db';
 import { applyTheme, THEMES } from '../theme/themes';
-import TerminalHeader from './TerminalHeader';
 import { SUPPORTED_LOCALES, type LocaleCode, type Settings } from '../types';
 import { notify } from './toast-bus';
 import { Button } from '@/components/ui/button';
@@ -50,7 +49,6 @@ export default function SettingsScreen() {
     const next = has
       ? settings.ocrLanguages.filter((c) => c !== code)
       : [...settings.ocrLanguages, code];
-    // ponytail: at least one OCR lang is required; refuse to leave it empty.
     if (next.length === 0) {
       notify('Need at least one OCR language');
       return;
@@ -83,8 +81,6 @@ export default function SettingsScreen() {
 
   return (
     <div className="max-w-md mx-auto p-4 flex flex-col gap-4 min-h-screen">
-      <TerminalHeader route="SETTINGS" />
-
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
         <Button variant="ghost" size="sm" onClick={() => navigate('/receipts')}>
@@ -190,7 +186,7 @@ export default function SettingsScreen() {
         </CardHeader>
         <CardContent>
           <p className="text-xs text-muted-foreground mb-2">
-            Used for HP calculation. Leave 0 to disable.
+            Track progress against a monthly spending target. Set to 0 to disable.
           </p>
           <div className="flex gap-2">
             <Input
@@ -214,7 +210,7 @@ export default function SettingsScreen() {
         </CardHeader>
         <CardContent>
           <p className="text-xs text-muted-foreground">
-            Where Money Gone — v2.3
+            Where Money Gone — v2.4
           </p>
           <p className="text-xs text-muted-foreground mt-1">
             Local-only. No cloud. No backup. You are the backup.

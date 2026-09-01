@@ -3,7 +3,6 @@
 @tailwind components;
 @tailwind utilities;
 
-
 :root {
   --wmg-bg: #0f0f23;
   --wmg-surface: #1a1a3e;
@@ -13,6 +12,37 @@
   --wmg-accent: #ff6bff;
   --wmg-danger: #ff4040;
   --wmg-warning: #ffcc00;
+
+  /* Shadcn semantic tokens → wmg retro palette. Single source of truth stays in --wmg-*.
+     All shadcn components therefore inherit the 16-bit theme. */
+  --background: var(--wmg-bg);
+  --foreground: var(--wmg-fg);
+  --card: var(--wmg-surface);
+  --card-foreground: var(--wmg-fg);
+  --popover: var(--wmg-surface);
+  --popover-foreground: var(--wmg-fg);
+  --primary: var(--wmg-accent);
+  --primary-foreground: var(--wmg-bg);
+  --secondary: var(--wmg-surface);
+  --secondary-foreground: var(--wmg-fg);
+  --muted: var(--wmg-surface);
+  --muted-foreground: var(--wmg-fg-dim);
+  --accent: var(--wmg-accent);
+  --accent-foreground: var(--wmg-bg);
+  --destructive: var(--wmg-danger);
+  --destructive-foreground: var(--wmg-fg);
+  --border: var(--wmg-fg-dim);
+  --input: var(--wmg-fg-dim);
+  --ring: var(--wmg-accent);
+  --radius: 0;
+  --sidebar: var(--wmg-surface);
+  --sidebar-foreground: var(--wmg-fg);
+  --sidebar-primary: var(--wmg-accent);
+  --sidebar-primary-foreground: var(--wmg-bg);
+  --sidebar-accent: var(--wmg-accent);
+  --sidebar-accent-foreground: var(--wmg-bg);
+  --sidebar-border: var(--wmg-fg-dim);
+  --sidebar-ring: var(--wmg-accent);
 }
 
 html,
@@ -147,4 +177,92 @@ img {
 .text-amber-400,
 .text-yellow-400 {
   color: var(--wmg-warning) !important;
+}
+
+/* Pixel-theme overrides for shadcn primitives. Keep rounded-* = 0, hard borders,
+   4px shadow. Per-slot rules so changes don't have to leak into each component. */
+[data-slot='card'],
+[data-slot='card'] * {
+  border-radius: 0 !important;
+}
+[data-slot='card'] {
+  border: 3px solid var(--wmg-fg-dim) !important;
+  box-shadow: 4px 4px 0 0 var(--wmg-fg-dim);
+}
+[data-slot='card'][data-px='accent'] {
+  border-color: var(--wmg-accent) !important;
+  box-shadow: 4px 4px 0 0 var(--wmg-accent);
+}
+
+[data-slot='button'] {
+  border-radius: 0 !important;
+  border-width: 3px !important;
+  box-shadow: 3px 3px 0 0 var(--wmg-fg-dim);
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.625rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 0.5rem 0.75rem;
+  height: auto;
+  gap: 0.4rem;
+}
+[data-slot='button']:active:not(:disabled) {
+  transform: translate(3px, 3px);
+  box-shadow: 0 0 0 0 var(--wmg-fg-dim);
+}
+[data-slot='button'][data-variant='destructive'] {
+  box-shadow: 3px 3px 0 0 var(--wmg-danger);
+}
+[data-slot='button'][data-variant='outline'] {
+  background: transparent !important;
+}
+
+[data-slot='input'],
+[data-slot='select-trigger'] {
+  border-radius: 0 !important;
+  border: 2px solid var(--wmg-fg-dim) !important;
+  background: var(--wmg-bg) !important;
+  color: var(--wmg-fg) !important;
+  font-family: 'Share Tech Mono', monospace !important;
+  box-shadow: none !important;
+}
+[data-slot='input']:focus-visible,
+[data-slot='select-trigger']:focus-visible {
+  border-color: var(--wmg-accent) !important;
+  outline: none !important;
+}
+
+[data-slot='badge'] {
+  border-radius: 0 !important;
+  border: 2px solid currentColor;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.5rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 0.15rem 0.4rem;
+}
+
+[data-slot='dialog-popup'],
+[data-slot='dialog-overlay'] {
+  border-radius: 0 !important;
+}
+[data-slot='dialog-popup'] {
+  background: var(--wmg-surface) !important;
+  color: var(--wmg-fg) !important;
+  border: 3px solid var(--wmg-fg-dim) !important;
+  box-shadow: 6px 6px 0 0 var(--wmg-fg-dim);
+}
+[data-slot='dialog-overlay'] {
+  background: rgba(0, 0, 0, 0.7) !important;
+}
+
+[data-slot='menu-item'],
+[data-slot='select-item'] {
+  border-radius: 0 !important;
+  font-family: 'Share Tech Mono', monospace;
+}
+
+[data-slot='switch'] {
+  border-radius: 0 !important;
+  border: 2px solid var(--wmg-fg-dim);
 }

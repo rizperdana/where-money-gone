@@ -1,9 +1,11 @@
 import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { FaCamera } from 'react-icons/fa6';
 import { db, newId } from '../db';
 import { downscaleImage } from '../util/image';
 import TerminalHeader from '../ui/TerminalHeader';
 import type { Receipt, UserLocation } from '../types';
+import { Button } from '@/components/ui/button';
 
 function getGeolocation(): Promise<UserLocation | null> {
   return new Promise((resolve) => {
@@ -77,13 +79,15 @@ export default function CaptureScreen() {
       <p className="text-[var(--wmg-fg-dim)] text-center max-w-xs">
         Point camera at a receipt. OCR runs on-device. Nothing leaves this phone.
       </p>
-      <button
-        className="wmg-panel hover:opacity-80 w-full max-w-xs font-medium py-4 text-lg disabled:opacity-50"
+      <Button
+        size="lg"
+        className="w-full max-w-xs"
         onClick={() => inputRef.current?.click()}
         disabled={busy}
       >
-        {busy ? '[ PROCESSING... ]' : '[ ADD RECEIPT ]'}
-      </button>
+        <FaCamera />
+        {busy ? 'PROCESSING...' : 'ADD RECEIPT'}
+      </Button>
       <input
         ref={inputRef}
         type="file"

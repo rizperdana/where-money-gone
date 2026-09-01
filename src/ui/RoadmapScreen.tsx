@@ -1,5 +1,7 @@
+import { FaSackDollar } from 'react-icons/fa6';
 import TerminalHeader from './TerminalHeader';
 import { ROADMAP_ITEMS, type RoadmapStatus } from './roadmap-content';
+import { Card, CardContent } from '@/components/ui/card';
 
 const STATUS_COLOR: Record<RoadmapStatus, string> = {
   planned: 'var(--wmg-fg-dim)',
@@ -29,21 +31,27 @@ export default function RoadmapScreen() {
 
       <ul className="flex flex-col gap-3">
         {ROADMAP_ITEMS.map((item) => (
-          <li key={item.id} className="wmg-panel flex flex-col gap-2">
-            <div className="flex items-start justify-between gap-2">
-              <h2 className="wmg-pixel text-[0.625rem]">{item.title}</h2>
-              <span
-                className="wmg-pixel text-[0.5rem] shrink-0"
-                style={{ color: STATUS_COLOR[item.status] }}
-              >
-                [ {STATUS_LABEL[item.status]} ]
-              </span>
-            </div>
-            <p className="text-sm">{item.description}</p>
-            <p className="text-xs text-[var(--wmg-fg-dim)]">💰 {item.monetization}</p>
-            <span className="wmg-pixel text-[0.5rem] text-[var(--wmg-fg-dim)]">
-              [ COST: {item.buildCost} ]
-            </span>
+          <li key={item.id}>
+            <Card>
+              <CardContent className="flex flex-col gap-2">
+                <div className="flex items-start justify-between gap-2">
+                  <h2 className="wmg-pixel text-[0.625rem]">{item.title}</h2>
+                  <span
+                    className="wmg-pixel text-[0.5rem] shrink-0"
+                    style={{ color: STATUS_COLOR[item.status] }}
+                  >
+                    [ {STATUS_LABEL[item.status]} ]
+                  </span>
+                </div>
+                <p className="text-sm">{item.description}</p>
+                <p className="text-xs text-[var(--wmg-fg-dim)] flex items-center gap-1">
+                  <FaSackDollar /> {item.monetization}
+                </p>
+                <span className="wmg-pixel text-[0.5rem] text-[var(--wmg-fg-dim)]">
+                  [ COST: {item.buildCost} ]
+                </span>
+              </CardContent>
+            </Card>
           </li>
         ))}
       </ul>

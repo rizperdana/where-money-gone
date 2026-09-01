@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { FaFileImport, FaFileExport, FaPlus } from 'react-icons/fa6';
 import { db } from '../db';
 import type { Receipt } from '../types';
 import TerminalHeader from './TerminalHeader';
@@ -9,6 +10,15 @@ import { formatTotal } from '../format';
 import { exportCsv, exportJson } from '../io/export';
 import { importJson } from '../io/import';
 import { notify } from './toast-bus';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 type DateRange = 'all' | 'today' | 'week' | 'month';
 function inRange(createdAt: number, range: DateRange): boolean {
@@ -19,8 +29,8 @@ function inRange(createdAt: number, range: DateRange): boolean {
     return d.toDateString() === now.toDateString();
   }
   if (range === 'week') {
-    const weekAgo = now.getTime() - 7 * 24 * 60 * 60 * 1000;
-    return d.getTime() >= weekAgo;
+    const day = 24 * 60 * 60 * 1000;
+    return now.getTime() - d.getTime() <= 7 * day;
   }
   if (range === 'month') {
     return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
@@ -103,16 +113,12 @@ export default function ListScreen() {
     <div className="max-w-3xl mx-auto p-4 flex flex-col gap-4 min-h-screen">
       <TerminalHeader route="RECEIPTS" />
 
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex items-center justify-between gap-2 flex-wrap">
         <h1 className="wmg-title">[ RECEIPTS ]</h1>
-        <div className="flex gap-2">
-          <button
-            className="wmg-panel hover:opacity-80 px-3 py-2 text-sm"
-            onClick={() => importRef.current?.click()}
-            aria-label="Import"
-          >
-            <span className="wmg-pixel">[ ↓ IMPORT ]</span>
-          </button>
+        <div className="flex gap-2 flex-wrap">
+          <Button variant="outline" onClick={() => importRef.current?.click()}>
+            <FaFileImport /> Import
+          </Button>
           <input
             ref={importRef}
             type="file"
@@ -120,45 +126,37 @@ export default function ListScreen() {
             className="hidden"
             onChange={handleImportFile}
           />
-          <button
-            className="wmg-panel hover:opacity-80 px-3 py-2 text-sm"
-            onClick={handleExportJson}
-          >
-            <span className="wmg-pixel">[ EXPORT JSON ]</span>
-          </button>
-          <button
-            className="wmg-panel hover:opacity-80 px-3 py-2 text-sm"
-            onClick={handleExportCsv}
-          >
-            <span className="wmg-pixel">[ EXPORT CSV ]</span>
-          </button>
-          <button
-            className="wmg-panel hover:opacity-80 px-3 py-2 text-sm"
-            onClick={() => navigate('/capture')}
-          >
-            [ + ADD ]
-          </button>
+          <Button variant="outline" onClick={handleExportJson}>
+            <FaFileExport /> JSON
+          </Button>
+          <Button variant="outline" onClick={handleExportCsv}>
+            <FaFileExport /> CSV
+          </Button>
+          <Button onClick={() => navigate('/capture')}>
+            <FaPlus /> Add
+          </Button>
         </div>
       </div>
 
       <div className="wmg-panel p-2 flex flex-col md:flex-row gap-2 text-sm">
-        <input
+        <Input
           type="text"
           placeholder="Search merchant..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="flex-1 bg-transparent border border-current/30 px-2 py-1 outline-none"
+          className="flex-1"
         />
-        <select
-          value={range}
-          onChange={(e) => setRange(e.target.value as DateRange)}
-          className="bg-transparent border border-current/30 px-2 py-1"
-        >
-          <option value="all">All time</option>
-          <option value="today">Today</option>
-          <option value="week">This week</option>
-          <option value="month">This month</option>
-        </select>
+        <Select value={range} onValueChange={(v) => setRange(v as DateRange)}>
+          <SelectTrigger className="w-full md:w-[180px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All time</SelectItem>
+            <SelectItem value="today">Today</SelectItem>
+            <SelectItem value="week">This week</SelectItem>
+            <SelectItem value="month">This month</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <StreakHeader />
@@ -173,7 +171,9 @@ export default function ListScreen() {
       )}
 
       {loaded && rows.length > 0 && filtered.length === 0 && (
-        <div className="wmg-panel text-sm opacity-70 p-3">No receipts match your filter.</div>
+        <div className="wmg-panel text-sm opacity-70 p-3">
+          No receipts match your filter.
+        </div>
       )}
 
       <ul className="flex flex-col gap-2">
@@ -184,7 +184,12 @@ export default function ListScreen() {
               onClick={() => navigate(`/receipts/${r.id}`)}
             >
               {thumbs[r.id] && (
-                <img src={thumbs[r.id]} alt="" className="w-14 h-14 object-cover" style={{ imageRendering: 'pixelated' }} />
+                <img
+                  src={thumbs[r.id]}
+                  alt=""
+                  className="w-14 h-14 object-cover"
+                  style={{ imageRendering: 'pixelated' }}
+                />
               )}
               <div className="flex-1 min-w-0">
                 <p className="font-medium truncate">
@@ -196,7 +201,9 @@ export default function ListScreen() {
               </div>
               <div className="text-right">
                 <p className="font-semibold">{formatTotal(r.total, r.currency)}</p>
-                <p className="text-[var(--wmg-fg-dim)] text-xs uppercase">{r.locationSource}</p>
+                <p className="text-[var(--wmg-fg-dim)] text-xs uppercase">
+                  {r.locationSource}
+                </p>
               </div>
             </button>
           </li>

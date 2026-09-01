@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { FaFloppyDisk, FaArrowLeft, FaLocationDot } from 'react-icons/fa6';
 import { db, getSettings, saveSettings } from '../db';
 import { runOcr } from './ocr';
 import { parseReceipt } from './parse';
@@ -8,7 +9,11 @@ import { notify } from '../ui/toast-bus';
 import { say } from '../narrator/narrator';
 import TerminalHeader from '../ui/TerminalHeader';
 import { applySaveHook } from '../gamification/apply-save';
-import type { ParseStatus, Receipt, Settings } from '../types';
+import type { Receipt, Settings } from '../types';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent } from '@/components/ui/card';
 
 function toDateInput(ms: number | null): string {
   if (ms === null) return '';
@@ -33,69 +38,73 @@ export default function ReviewScreen() {
   const urlRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!id) return;
-    getSettings().then(setSettings);
-    db.receipts.get(id).then((row) => setR(row ?? null));
+    (async () => {
+      if (!id) return;
+      const row = await db.receipts.get(id);
+      setR(row ?? null);
+    })();
   }, [id]);
 
   useEffect(() => {
-    if (!r || !r.imageBlob) return;
-    if (urlRef.current) URL.revokeObjectURL(urlRef.current);
+    if (!r?.imageBlob) return;
     urlRef.current = URL.createObjectURL(r.imageBlob);
     return () => {
       if (urlRef.current) URL.revokeObjectURL(urlRef.current);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [r?.imageBlob]);
 
   useEffect(() => {
-    if (!r || !id) return;
-    if (r.parseStatus !== 'pending' || r.ocrText) return;
-    let cancelled = false;
     (async () => {
+      if (!r || r.ocrRanAt !== null) return;
+      const s = await getSettings();
+      setSettings(s);
       try {
-        const { text, confidence } = await runOcr(r.imageBlob, setProgress);
-        if (cancelled) return;
-        const parsed = parseReceipt(text, confidence);
-        const geocoded = parsed.merchantRaw
-          ? await geocodeMerchant(parsed.merchantRaw)
-          : null;
-        if (cancelled) return;
-        const updated = patch(r, {
-          ocrText: text,
-          ocrConfidence: confidence,
-          ocrRanAt: Date.now(),
-          ocrLocale: parsed.locale,
-          merchant: {
-            raw: parsed.merchantRaw ?? '',
-            normalized: parsed.merchantNormalized,
-            geocoded: geocoded ?? null,
-          },
-          purchaseAt: parsed.purchaseAt,
-          currency: parsed.currency,
-          total: parsed.total,
-          subtotal: parsed.subtotal,
-          tax: parsed.tax,
-          lineItems: parsed.lineItems,
-          locationSource: geocoded ? 'both' : r.userLocation ? 'user' : 'none',
-          parseStatus: parsed.parseStatus === 'pending' ? 'pending' : 'parsed',
-        });
-        await db.receipts.put(updated);
-        setR(updated);
-      } catch {
-        if (cancelled) return;
-        const failed = patch(r, { parseStatus: 'failed' as ParseStatus });
-        await db.receipts.put(failed);
-        setR(failed);
-        setError('OCR failed — enter manually');
-      } finally {
-        if (!cancelled) setProgress(null);
+        const result = await runOcr(r.imageBlob, (p) => setProgress(p));
+        const parsed = parseReceipt(result.text, result.confidence);
+        setR((prev) =>
+          prev
+            ? {
+                ...prev,
+                ocrText: result.text,
+                ocrConfidence: result.confidence,
+                ocrRanAt: Date.now(),
+                merchant: {
+                  raw: parsed.merchantRaw ?? prev.merchant.raw,
+                  normalized: parsed.merchantNormalized ?? prev.merchant.normalized,
+                  geocoded: prev.merchant.geocoded,
+                },
+                purchaseAt: parsed.purchaseAt ?? prev.purchaseAt,
+                currency: parsed.currency ?? prev.currency,
+                total: parsed.total ?? prev.total,
+                subtotal: parsed.subtotal ?? prev.subtotal,
+                tax: parsed.tax ?? prev.tax,
+                lineItems: parsed.lineItems.length ? parsed.lineItems : prev.lineItems,
+                parseStatus: parsed.parseStatus,
+                updatedAt: Date.now(),
+              }
+            : prev,
+        );
+        setProgress(null);
+        const merchant = parsed.merchantNormalized ?? parsed.merchantRaw;
+        if (merchant) {
+          const geo = await geocodeMerchant(merchant);
+          if (geo) {
+            setR((prev) =>
+              prev
+                ? {
+                    ...prev,
+                    merchant: { ...prev.merchant, geocoded: geo },
+                    updatedAt: Date.now(),
+                  }
+                : prev,
+            );
+          }
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'OCR failed');
+        setProgress(null);
       }
     })();
-    return () => {
-      cancelled = true;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [r, id]);
 
   if (!r) return <p className="p-6 text-[var(--wmg-fg-dim)]">{say('loading', id)}</p>;
@@ -107,28 +116,11 @@ export default function ReviewScreen() {
   }
 
   async function save() {
-    if (!r) return;
-    const merchantName = (r.merchant.normalized ?? r.merchant.raw).trim();
-    if (!merchantName || r.total === null || !r.currency) {
-      setError('Merchant name, total and currency are required');
-      return;
-    }
-    const updated = patch(r, {
-      merchant: {
-        raw: r.merchant.raw || merchantName,
-        normalized: merchantName,
-        geocoded: r.merchant.geocoded,
-      },
-      parseStatus: 'user_confirmed' as ParseStatus,
-    });
-    await db.receipts.put(updated);
-    // Tier 0.8: gamification hook fires on user-confirmed save only.
-    const { newlyUnlocked } = await applySaveHook(r.id);
-    notify(say('save_success', r.id));
-    for (const a of newlyUnlocked) {
-      notify(`[${a.name}] ${a.description}`);
-    }
-    navigate(`/receipts/${r.id}`);
+    const next = patch(r!, { parseStatus: 'user_confirmed' });
+    await db.receipts.put(next);
+    await applySaveHook(next.id);
+    notify('Receipt saved');
+    navigate('/receipts');
   }
 
   return (
@@ -137,9 +129,9 @@ export default function ReviewScreen() {
 
       <div className="flex items-center justify-between">
         <h1 className="wmg-title">[ REVIEW ]</h1>
-        <button className="text-[var(--wmg-fg-dim)] text-sm" onClick={() => navigate('/receipts')}>
-          [ CANCEL ]
-        </button>
+        <Button variant="ghost" size="sm" onClick={() => navigate('/receipts')}>
+          <FaArrowLeft /> Cancel
+        </Button>
       </div>
 
       {imgUrl && (
@@ -151,25 +143,27 @@ export default function ReviewScreen() {
       )}
 
       {progress !== null && (
-        <div className="flex flex-col gap-1">
-          <p className="text-[var(--wmg-fg-bright)] text-sm">
-            {say('loading', id)} {Math.round(progress * 100)}%
-          </p>
-          <div className="h-2 bg-[var(--wmg-surface)] border border-[var(--wmg-fg-dim)]">
-            <div
-              className="h-full bg-[var(--wmg-accent)]"
-              style={{ width: `${progress * 100}%` }}
-            />
-          </div>
-        </div>
+        <Card>
+          <CardContent className="text-sm">
+            <p className="text-[var(--wmg-fg-bright)]">
+              {say('loading', id)} {Math.round(progress * 100)}%
+            </p>
+            <div className="h-2 bg-[var(--wmg-surface)] border border-[var(--wmg-fg-dim)] mt-1">
+              <div
+                className="h-full bg-[var(--wmg-accent)]"
+                style={{ width: `${progress * 100}%` }}
+              />
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {error && <p className="text-[var(--wmg-danger)] text-sm">{error}</p>}
 
-      <label className="flex flex-col gap-1">
-        <span className="text-[var(--wmg-fg-dim)] text-sm">Merchant</span>
-        <input
-          className="wmg-panel text-[var(--wmg-fg)]"
+      <div className="flex flex-col gap-1">
+        <Label htmlFor="merchant">Merchant</Label>
+        <Input
+          id="merchant"
           value={r.merchant.normalized ?? r.merchant.raw}
           onChange={(e) =>
             update({
@@ -181,13 +175,13 @@ export default function ReviewScreen() {
             })
           }
         />
-      </label>
+      </div>
 
-      <label className="flex flex-col gap-1">
-        <span className="text-[var(--wmg-fg-dim)] text-sm">Date</span>
-        <input
+      <div className="flex flex-col gap-1">
+        <Label htmlFor="purchaseAt">Date</Label>
+        <Input
+          id="purchaseAt"
           type="date"
-          className="wmg-panel text-[var(--wmg-fg)]"
           value={toDateInput(r.purchaseAt)}
           onChange={(e) =>
             update({
@@ -197,109 +191,106 @@ export default function ReviewScreen() {
             })
           }
         />
-      </label>
+      </div>
 
       <div className="flex gap-2">
-        <label className="flex flex-col gap-1 flex-1">
-          <span className="text-[var(--wmg-fg-dim)] text-sm">Currency</span>
-          <input
-            className="wmg-panel text-[var(--wmg-fg)] uppercase"
+        <div className="flex flex-col gap-1 flex-1">
+          <Label htmlFor="currency">Currency</Label>
+          <Input
+            id="currency"
+            className="uppercase"
             value={r.currency ?? ''}
             placeholder="USD"
-            onChange={(e) => update({ currency: e.target.value.toUpperCase() || null })}
+            onChange={(e) =>
+              update({ currency: e.target.value.toUpperCase() || null })
+            }
           />
-        </label>
-        <label className="flex flex-col gap-1 flex-1">
-          <span className="text-[var(--wmg-fg-dim)] text-sm">Total</span>
-          <input
+        </div>
+        <div className="flex flex-col gap-1 flex-1">
+          <Label htmlFor="total">Total</Label>
+          <Input
+            id="total"
             type="number"
             step="0.01"
-            className="wmg-panel text-[var(--wmg-fg)]"
             value={r.total ?? ''}
             onChange={(e) =>
               update({ total: e.target.value === '' ? null : parseFloat(e.target.value) })
             }
           />
-        </label>
+        </div>
       </div>
 
       <div className="flex gap-2">
-        <label className="flex flex-col gap-1 flex-1">
-          <span className="text-[var(--wmg-fg-dim)] text-sm">Subtotal</span>
-          <input
+        <div className="flex flex-col gap-1 flex-1">
+          <Label htmlFor="subtotal">Subtotal</Label>
+          <Input
+            id="subtotal"
             type="number"
             step="0.01"
-            className="wmg-panel text-[var(--wmg-fg)]"
             value={r.subtotal ?? ''}
             onChange={(e) =>
               update({ subtotal: e.target.value === '' ? null : parseFloat(e.target.value) })
             }
           />
-        </label>
-        <label className="flex flex-col gap-1 flex-1">
-          <span className="text-[var(--wmg-fg-dim)] text-sm">Tax</span>
-          <input
+        </div>
+        <div className="flex flex-col gap-1 flex-1">
+          <Label htmlFor="tax">Tax</Label>
+          <Input
+            id="tax"
             type="number"
             step="0.01"
-            className="wmg-panel text-[var(--wmg-fg)]"
             value={r.tax ?? ''}
             onChange={(e) =>
               update({ tax: e.target.value === '' ? null : parseFloat(e.target.value) })
             }
           />
-        </label>
-      </div>
-
-      <div className="flex flex-col gap-1">
-        <span className="text-[var(--wmg-fg-dim)] text-sm">Location used for analytics</span>
-        <div className="flex gap-2">
-          <button
-            className={`flex-1 py-2 border ${
-              r.locationSource === 'user'
-                ? 'border-[var(--wmg-accent)] text-[var(--wmg-accent)]'
-                : 'border-[var(--wmg-fg-dim)] text-[var(--wmg-fg-dim)]'
-            }`}
-            onClick={() => update({ locationSource: 'user' })}
-            disabled={!r.userLocation}
-          >
-            My GPS
-          </button>
-          <button
-            className={`flex-1 py-2 border ${
-              r.locationSource === 'merchant'
-                ? 'border-[var(--wmg-accent)] text-[var(--wmg-accent)]'
-                : 'border-[var(--wmg-fg-dim)] text-[var(--wmg-fg-dim)]'
-            }`}
-            onClick={() => update({ locationSource: 'merchant' })}
-            disabled={!r.merchant.geocoded}
-          >
-            Merchant
-          </button>
         </div>
-        {r.merchant.geocoded && (
-          <p className="text-[var(--wmg-fg-dim)] text-xs">{r.merchant.geocoded.displayName}</p>
-        )}
       </div>
 
-      {settings && (
-        <button
-          className="text-[var(--wmg-fg-dim)] text-xs underline self-start"
-          onClick={() => {
-            const next = r.locationSource === 'user' ? 'merchant' : 'user';
-            update({ locationSource: next });
-            void saveSettings({ activeLocationSource: next });
-          }}
-        >
-          Set “{r.locationSource}” as default
-        </button>
-      )}
+      <Card>
+        <CardContent className="text-sm flex flex-col gap-2">
+          <Label>Location used for analytics</Label>
+          <div className="flex gap-2">
+            <Button
+              variant={r.locationSource === 'user' ? 'default' : 'outline'}
+              className="flex-1"
+              onClick={() => update({ locationSource: 'user' })}
+              disabled={!r.userLocation}
+            >
+              <FaLocationDot /> My GPS
+            </Button>
+            <Button
+              variant={r.locationSource === 'merchant' ? 'default' : 'outline'}
+              className="flex-1"
+              onClick={() => update({ locationSource: 'merchant' })}
+              disabled={!r.merchant.geocoded}
+            >
+              <FaLocationDot /> Merchant
+            </Button>
+          </div>
+          {r.merchant.geocoded && (
+            <p className="text-[var(--wmg-fg-dim)] text-xs">
+              {r.merchant.geocoded.displayName}
+            </p>
+          )}
+          {settings && (
+            <button
+              className="text-[var(--wmg-fg-dim)] text-xs underline self-start"
+              onClick={() => {
+                const next = r.locationSource === 'user' ? 'merchant' : 'user';
+                update({ locationSource: next });
+                void saveSettings({ activeLocationSource: next });
+              }}
+            >
+              Set “{r.locationSource}” as default
+            </button>
+          )}
+        </CardContent>
+      </Card>
 
-      <button
-        className="wmg-panel hover:opacity-80 font-medium py-3"
-        onClick={save}
-      >
-        [ SAVE RECEIPT ]
-      </button>
+      <Button onClick={save} size="lg">
+        <FaFloppyDisk /> SAVE RECEIPT
+      </Button>
     </div>
   );
 }
